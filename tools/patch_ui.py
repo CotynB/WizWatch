@@ -15,15 +15,24 @@ import os
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SCREENS_C = os.path.join(SCRIPT_DIR, "..", "ui", "WizWatch", "src", "ui", "screens.c")
 UI_CPP = os.path.join(SCRIPT_DIR, "..", "ui.cpp")
+IMAGES_DIR = os.path.join(SCRIPT_DIR, "..", "ui", "WizWatch", "src", "ui", "images")
 
-IMAGE_REPLACEMENTS = {
-    "&img_fond": '"S:fond.bin"',
-    "&img_full": '"S:full.bin"',
-    "&img_half_full": '"S:half_full.bin"',
-    "&img_empty": '"S:empty.bin"',
-}
 
-OBJECTS = ["fond", "battery_full", "battery_half_full", "battery_empty", "time_lbl"]
+def discover_image_replacements():
+    """Auto-discover all ui_image_*.c files and build replacement dict."""
+    replacements = {}
+
+    if not os.path.isdir(IMAGES_DIR):
+        print(f"WARNING: Images directory not found: {IMAGES_DIR}")
+        return replacements
+
+    for filename in os.listdir(IMAGES_DIR):
+        if filename.startswith("ui_image_") and filename.endswith(".c"):
+            # Extract name: ui_image_fond.c -> fond
+            name = filename[9:-2]  # Strip "ui_image_" prefix and ".c" suffix
+            replacements[f"&img_{name}"] = f'"S:{name}.bin"'
+
+    return replacements
 
 
 def extract_lv_calls(block):
@@ -37,6 +46,33 @@ def extract_lv_calls(block):
     return calls
 
 
+def discover_objects(content):
+    """Auto-discover all object names from the object_names[] array in screens.c."""
+    match = re.search(r'object_names\[\]\s*=\s*\{([^}]+)\}', content)
+    if not match:
+        return []
+
+    # Extract quoted strings: "main", "fond", etc.
+    names = re.findall(r'"([^"]+)"', match.group(1))
+
+    # Filter out screen names (they appear in screen_names[] too)
+    screen_match = re.search(r'screen_names\[\]\s*=\s*\{([^}]+)\}', content)
+    screen_names = []
+    if screen_match:
+        screen_names = [s.lower() for s in re.findall(r'"([^"]+)"', screen_match.group(1))]
+
+    # Return objects that aren't screens
+    return [n for n in names if n.lower() not in screen_names]
+
+
+def discover_screens(content):
+    """Auto-discover all screen names from screen_names[] array."""
+    match = re.search(r'screen_names\[\]\s*=\s*\{([^}]+)\}', content)
+    if not match:
+        return []
+    return [s.lower() for s in re.findall(r'"([^"]+)"', match.group(1))]
+
+
 def parse_screens_c():
     """Parse screens.c to extract all lv_* calls per object."""
     with open(SCREENS_C, "r") as f:
@@ -44,36 +80,45 @@ def parse_screens_c():
 
     props = {}
 
-    for obj_name in OBJECTS:
-        pattern = rf'objects\.{re.escape(obj_name)}\s*=\s*obj;(.*?)(?=objects\.\w+\s*=|$)'
+    # Auto-discover objects
+    objects = discover_objects(content)
+    screens = discover_screens(content)
+
+    print(f"  Found {len(screens)} screens: {', '.join(screens)}")
+    print(f"  Found {len(objects)} objects: {', '.join(objects)}")
+
+    for obj_name in objects:
+        pattern = rf'objects\.{re.escape(obj_name)}\s*=\s*obj;(.*?)(?=objects\.\w+\s*=|\n\s*\}})'
         match = re.search(pattern, content, re.DOTALL)
         if not match:
             continue
         block = match.group(1)
         props[obj_name] = extract_lv_calls(block)
 
-    # Screen size
-    screen_match = re.search(
-        r'objects\.main\s*=\s*obj;(.*?)(?=\{\s*lv_obj_t \*parent_obj)',
-        content, re.DOTALL
-    )
-    if screen_match:
-        props['_screen'] = extract_lv_calls(screen_match.group(1))
+    # Extract screen-level properties for each screen
+    for screen_name in screens:
+        screen_match = re.search(
+            rf'objects\.{re.escape(screen_name)}\s*=\s*obj;(.*?)(?=\{{\s*lv_obj_t \*parent_obj)',
+            content, re.DOTALL
+        )
+        if screen_match:
+            props[f'_screen_{screen_name}'] = extract_lv_calls(screen_match.group(1))
 
     return props
 
 
-def patch_ui_cpp(props):
+def patch_ui_cpp(props, image_replacements):
     """Update ui.cpp with extracted properties."""
     with open(UI_CPP, "r") as f:
         content = f.read()
 
-    # Update screen-level calls
-    if '_screen' in props:
-        for func, args in props['_screen'].items():
-            pattern = rf'{re.escape(func)}\(scr,\s*.*?\)'
-            replacement = f'{func}(scr, {args})'
-            content = re.sub(pattern, replacement, content)
+    # Update screen-level calls for all screens
+    for key, calls in props.items():
+        if key.startswith('_screen_'):
+            for func, args in calls.items():
+                pattern = rf'{re.escape(func)}\(scr,\s*.*?\)'
+                replacement = f'{func}(scr, {args})'
+                content = re.sub(pattern, replacement, content)
 
     for obj_name, calls in props.items():
         if obj_name.startswith('_'):
@@ -109,7 +154,7 @@ def patch_ui_cpp(props):
         content = content.replace(block, new_block)
 
     # Replace image references with SD card paths
-    for old, new in IMAGE_REPLACEMENTS.items():
+    for old, new in image_replacements.items():
         content = content.replace(old, new)
 
     # Remove image includes
@@ -123,19 +168,24 @@ def patch_ui_cpp(props):
 
 
 def main():
-    print("Reading screens.c...")
+    print("Discovering images...")
+    image_replacements = discover_image_replacements()
+    print(f"  Found {len(image_replacements)} images:")
+    for old, new in sorted(image_replacements.items()):
+        print(f"    {old} -> {new}")
+
+    print("\nReading screens.c...")
     props = parse_screens_c()
 
     for name, calls in props.items():
-        if name.startswith('_'):
-            print(f"  Screen: {calls}")
-        else:
-            print(f"  {name}:")
-            for func, args in calls.items():
-                print(f"    {func}(obj, {args})")
+        if name.startswith('_screen_'):
+            screen_name = name[8:]  # Strip '_screen_' prefix
+            print(f"  Screen '{screen_name}': {len(calls)} calls")
+        elif calls:
+            print(f"  {name}: {len(calls)} lv_* calls")
 
     print("\nPatching ui.cpp...")
-    patch_ui_cpp(props)
+    patch_ui_cpp(props, image_replacements)
     print("Done!")
 
 

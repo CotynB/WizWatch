@@ -16,7 +16,8 @@ extern "C" {
 
 enum FlowGlobalVariables {
     FLOW_GLOBAL_VARIABLE_BATTERY_STATE = 0,
-    FLOW_GLOBAL_VARIABLE_TIME_TEXT = 1
+    FLOW_GLOBAL_VARIABLE_TIME_TEXT = 1,
+    FLOW_GLOBAL_VARIABLE_BRIGHTNESS = 2
 };
 
 // Native global variables

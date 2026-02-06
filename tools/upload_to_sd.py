@@ -20,14 +20,28 @@ import struct
 LV_IMAGE_HEADER_MAGIC = 0x19
 LV_COLOR_FORMAT_ARGB8888 = 0x10
 
-# Image definitions: (source_c_file, output_name)
-# Width, height, stride are auto-detected from the C file
-IMAGES = [
-    ("../ui/WizWatch/src/ui/images/ui_image_fond.c", "fond.bin"),
-    ("../ui/WizWatch/src/ui/images/ui_image_full.c", "full.bin"),
-    ("../ui/WizWatch/src/ui/images/ui_image_half_full.c", "half_full.bin"),
-    ("../ui/WizWatch/src/ui/images/ui_image_empty.c", "empty.bin"),
-]
+# Images directory (relative to this script)
+IMAGES_DIR = "../ui/WizWatch/src/ui/images"
+
+
+def discover_images(script_dir):
+    """Auto-discover all ui_image_*.c files and return (source_path, output_name) tuples."""
+    images_path = os.path.join(script_dir, IMAGES_DIR)
+    images = []
+
+    if not os.path.isdir(images_path):
+        print(f"WARNING: Images directory not found: {images_path}")
+        return images
+
+    for filename in os.listdir(images_path):
+        if filename.startswith("ui_image_") and filename.endswith(".c"):
+            # Extract name: ui_image_fond.c -> fond
+            name = filename[9:-2]  # Strip "ui_image_" prefix and ".c" suffix
+            src = os.path.join(IMAGES_DIR, filename)
+            output = f"{name}.bin"
+            images.append((src, output))
+
+    return sorted(images, key=lambda x: x[1])  # Sort by output name for consistency
 
 CHUNK_SIZE = 64  # raw bytes per chunk, sent as 128 hex chars
 
@@ -194,8 +208,18 @@ def main():
         ser.close()
         sys.exit(1)
 
-    # Convert and upload each image
-    for src, name in IMAGES:
+    # Discover and upload each image
+    images = discover_images(script_dir)
+    if not images:
+        print("No images found to upload!")
+        ser.close()
+        sys.exit(1)
+
+    print(f"\nFound {len(images)} images to upload:")
+    for src, name in images:
+        print(f"  {name}")
+
+    for src, name in images:
         src_path = os.path.join(script_dir, src)
         if not os.path.exists(src_path):
             print(f"ERROR: Source file not found: {src_path}")

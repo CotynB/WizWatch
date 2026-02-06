@@ -45,6 +45,7 @@ void ui_create() {
     lv_obj_set_pos(obj, 0, 0);
     lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_image_set_src(obj, "S:fond.bin");
+    lv_obj_set_style_radius(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
   }
 
   // Battery full icon
@@ -55,6 +56,7 @@ void ui_create() {
     lv_obj_set_size(obj, 36, 54);
     lv_image_set_src(obj, "S:full.bin");
     USBSerial.println("Battery full image loaded");
+    lv_image_set_scale(obj, 200);
   }
 
   // Battery half full icon
@@ -64,6 +66,7 @@ void ui_create() {
     lv_obj_set_pos(obj, 71, 34);
     lv_obj_set_size(obj, 36, 54);
     lv_image_set_src(obj, "S:half_full.bin");
+    lv_image_set_scale(obj, 200);
   }
 
   // Battery empty icon
@@ -73,6 +76,7 @@ void ui_create() {
     lv_obj_set_pos(obj, 71, 34);
     lv_obj_set_size(obj, 36, 54);
     lv_image_set_src(obj, "S:empty.bin");
+    lv_image_set_scale(obj, 200);
   }
 
   // Time label
@@ -82,9 +86,10 @@ void ui_create() {
     lv_obj_set_size(obj, 333, 43);
     lv_obj_align(obj, LV_ALIGN_TOP_MID, 0, 134);
     lv_obj_set_style_text_font(obj, &lv_font_montserrat_48, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_color(obj, lv_color_hex(0xffb4e898), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(obj, lv_color_hex(0xffb4e898), LV_PART_MAIN | LV_STATE_DEFAULT), LV_PART_MAIN | LV_STATE_DEFAULT), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_label_set_text(obj, "");
+    lv_obj_set_pos(obj, 39, 144);
   }
 
   update_battery_icons();
