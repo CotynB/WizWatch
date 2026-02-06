@@ -11,15 +11,8 @@ extern HWCDC USBSerial;
 
 void battery_init() {
     // Initialize battery monitoring hardware
-
     // Set initial battery state to FULL for testing
-    USBSerial.println("[BATTERY] Initializing - setting state to FULL (2)");
     eez::flow::setGlobalVariable(FLOW_GLOBAL_VARIABLE_BATTERY_STATE, eez::Value((int)BATTERY_FULL));
-
-    // Verify it was set
-    int readBack = eez::flow::getGlobalVariable(FLOW_GLOBAL_VARIABLE_BATTERY_STATE).getInt();
-    USBSerial.print("[BATTERY] State set to: ");
-    USBSerial.println(readBack);
 }
 
 int get_battery_level() {
@@ -29,6 +22,8 @@ int get_battery_level() {
 }
 
 void battery_update() {
+    static BatteryState lastState = (BatteryState)-1;
+
     int level = get_battery_level();
 
     BatteryState state;
@@ -40,14 +35,9 @@ void battery_update() {
         state = BATTERY_EMPTY;
     }
 
-    // Set EEZ Flow global variable
-    static BatteryState lastState = (BatteryState)-1;
+    // Only update if state changed to avoid unnecessary global variable writes
     if (state != lastState) {
-        USBSerial.print("[BATTERY] Updating state from ");
-        USBSerial.print((int)lastState);
-        USBSerial.print(" to ");
-        USBSerial.println((int)state);
+        eez::flow::setGlobalVariable(FLOW_GLOBAL_VARIABLE_BATTERY_STATE, eez::Value((int)state));
         lastState = state;
     }
-    eez::flow::setGlobalVariable(FLOW_GLOBAL_VARIABLE_BATTERY_STATE, eez::Value((int)state));
 }

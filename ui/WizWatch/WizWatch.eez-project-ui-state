@@ -239,7 +239,8 @@
                   },
                   "icon": "svg:page"
                 }
-              ]
+              ],
+              "active": true
             },
             {
               "type": "row",
@@ -259,8 +260,7 @@
                       "enableClose": false,
                       "icon": "svg:properties"
                     }
-                  ],
-                  "active": true
+                  ]
                 },
                 {
                   "type": "tabset",
@@ -1022,7 +1022,8 @@
       "selection": {
         "0": {
           "0": {},
-          "1": {
+          "1": {},
+          "2": {
             "$selected": true
           },
           "4": {},
@@ -1047,7 +1048,9 @@
       "selection": {
         "0": {
           "0": {},
-          "2": {},
+          "2": {
+            "$selected": true
+          },
           "3": {}
         }
       },

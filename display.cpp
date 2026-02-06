@@ -32,4 +32,18 @@ void display_init() {
     USBSerial.println("gfx->begin() failed!");
   }
   gfx->fillScreen(RGB565_BLACK);
+
+  // Set default brightness to 20% for power saving
+  display_set_brightness(51);  // 20% brightness as default
+}
+
+void display_set_brightness(uint8_t brightness) {
+  // Safety check - ensure gfx is valid
+  if (!gfx) {
+    return;
+  }
+
+  // Cast to CO5300 to access brightness control
+  Arduino_CO5300 *co5300 = static_cast<Arduino_CO5300*>(gfx);
+  co5300->setBrightness(brightness);
 }

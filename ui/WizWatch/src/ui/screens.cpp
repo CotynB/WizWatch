@@ -6,12 +6,8 @@
 #include "vars.h"
 #include "styles.h"
 #include "ui.h"
-#include <eez/flow/flow.h>
-#include "HWCDC.h"
 
 #include <string.h>
-
-extern HWCDC USBSerial;
 
 objects_t objects;
 lv_obj_t *tick_value_change_obj;
@@ -138,25 +134,10 @@ void delete_screen_main() {
 void tick_screen_main() {
     void *flowState = getFlowState(0, 0);
     (void)flowState;
-
-    // MANUAL FIX: Read batteryState global variable directly
-    int batteryState = eez::flow::getGlobalVariable(FLOW_GLOBAL_VARIABLE_BATTERY_STATE).getInt();
-
-    static bool first_tick = true;
-    if (first_tick) {
-        extern HWCDC USBSerial;
-        USBSerial.print("[TICK] First tick - batteryState=");
-        USBSerial.println(batteryState);
-        first_tick = false;
-    }
-
     {
-        bool new_val = (batteryState != 2);  // Hide if not BATTERY_FULL
+        bool new_val = evalBooleanProperty(flowState, 2, 3, "Failed to evaluate Hidden flag");
         bool cur_val = lv_obj_has_flag(objects.battery_full, LV_OBJ_FLAG_HIDDEN);
         if (new_val != cur_val) {
-            extern HWCDC USBSerial;
-            USBSerial.print("[TICK] battery_full hidden: ");
-            USBSerial.println(new_val ? "TRUE" : "FALSE");
             tick_value_change_obj = objects.battery_full;
             if (new_val) lv_obj_add_flag(objects.battery_full, LV_OBJ_FLAG_HIDDEN);
             else lv_obj_clear_flag(objects.battery_full, LV_OBJ_FLAG_HIDDEN);
@@ -164,7 +145,7 @@ void tick_screen_main() {
         }
     }
     {
-        bool new_val = (batteryState != 1);  // Hide if not BATTERY_HALF
+        bool new_val = evalBooleanProperty(flowState, 3, 3, "Failed to evaluate Hidden flag");
         bool cur_val = lv_obj_has_flag(objects.battery_half_full, LV_OBJ_FLAG_HIDDEN);
         if (new_val != cur_val) {
             tick_value_change_obj = objects.battery_half_full;
@@ -174,7 +155,7 @@ void tick_screen_main() {
         }
     }
     {
-        bool new_val = (batteryState != 0);  // Hide if not BATTERY_EMPTY
+        bool new_val = evalBooleanProperty(flowState, 4, 3, "Failed to evaluate Hidden flag");
         bool cur_val = lv_obj_has_flag(objects.battery_empty, LV_OBJ_FLAG_HIDDEN);
         if (new_val != cur_val) {
             tick_value_change_obj = objects.battery_empty;
@@ -217,7 +198,7 @@ void create_screen_settings() {
                     lv_obj_t *obj = lv_slider_create(parent_obj);
                     objects.brightnessslider = obj;
                     lv_obj_set_pos(obj, 130, 114);
-                    lv_obj_set_size(obj, 150, 10);
+                    lv_obj_set_size(obj, 150, 30);
                     lv_obj_add_event_cb(obj, event_handler_cb_settings_brightnessslider, LV_EVENT_ALL, flowState);
                     lv_obj_set_style_outline_color(obj, lv_color_hex(0xff000000), LV_PART_KNOB | LV_STATE_SCROLLED);
                     lv_obj_set_style_bg_color(obj, lv_color_hex(0xff86b66d), LV_PART_KNOB | LV_STATE_DEFAULT);
@@ -235,13 +216,13 @@ void create_screen_settings() {
             lv_obj_set_style_text_font(obj, &lv_font_montserrat_30, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_text_color(obj, lv_color_hex(0xffb4e898), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_label_set_text(obj, "Brightness\n");
+            lv_label_set_text(obj, "Luminosite\n");
         }
         {
             // BrightnessLBL_1
             lv_obj_t *obj = lv_label_create(parent_obj);
             objects.brightness_lbl_1 = obj;
-            lv_obj_set_pos(obj, 39, 138);
+            lv_obj_set_pos(obj, 39, 156);
             lv_obj_set_size(obj, 333, 43);
             lv_obj_set_style_text_font(obj, &lv_font_montserrat_30, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_text_color(obj, lv_color_hex(0xffb4e898), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -281,7 +262,7 @@ void tick_screen_settings() {
         int32_t cur_val = lv_slider_get_value(objects.brightnessslider);
         if (new_val != cur_val) {
             tick_value_change_obj = objects.brightnessslider;
-            lv_slider_set_value(objects.brightnessslider, new_val, LV_ANIM_OFF);
+            lv_slider_set_value(objects.brightnessslider, new_val, LV_ANIM_ON);
             tick_value_change_obj = NULL;
         }
     }

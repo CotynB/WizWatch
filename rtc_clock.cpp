@@ -35,30 +35,19 @@ void rtc_init() {
 }
 
 void rtc_update_display() {
+  static char last_buf[6] = {0};
+
   RTC_DateTime datetime = rtc.getDateTime();
 
-  // Debug: print raw values
-  USBSerial.print("RTC Values - H:");
-  USBSerial.print(datetime.getHour());
-  USBSerial.print(" M:");
-  USBSerial.print(datetime.getMinute());
-  USBSerial.print(" D:");
-  USBSerial.print(datetime.getDay());
-  USBSerial.print(" M:");
-  USBSerial.print(datetime.getMonth());
-  USBSerial.print(" Y:");
-  USBSerial.println(datetime.getYear());
-
-  char buf[100];
-  // Temporarily use simple format for testing
+  char buf[6];  // Reduced buffer size - only need "HH:MM\0"
   snprintf(buf, sizeof(buf), "%02d:%02d",
            datetime.getHour(), datetime.getMinute());
 
-  USBSerial.print("Formatted: ");
-  USBSerial.println(buf);
-
-  // Update EEZ native variable - Flow will read this automatically
-  set_var_rtc_time(buf);
+  // Only update if time has changed to avoid redundant EEZ variable writes
+  if (strcmp(buf, last_buf) != 0) {
+    strcpy(last_buf, buf);
+    set_var_rtc_time(buf);
+  }
 }
 
 void rtc_tick() {

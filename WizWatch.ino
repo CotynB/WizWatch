@@ -4,12 +4,15 @@
 #include <lvgl.h>
 #include "lv_conf.h"
 #include "HWCDC.h"
+#include <WiFi.h>
 
 #include "display.h"
 #include "touch.h"
 #include "rtc_clock.h"
 #include "sd_card.h"
 #include "battery.h"
+#include "brightness.h"
+#include "power.h"
 
 // EEZ Studio generated UI
 #include "ui/WizWatch/src/ui/ui.h"
@@ -41,13 +44,17 @@ void setup() {
 #endif
 
   USBSerial.begin(115200);
-  USBSerial.println("Arduino_GFX LVGL_Arduino_v9 example ");
-  String LVGL_Arduino = String('V') + lv_version_major() + "." + lv_version_minor() + "." + lv_version_patch();
-  USBSerial.println(LVGL_Arduino);
+  USBSerial.println("WizWatch starting...");
+
+  // Disable WiFi and Bluetooth for maximum power saving
+  WiFi.mode(WIFI_OFF);
+  btStop();
+  USBSerial.println("WiFi/BT disabled for power saving");
 
   display_init();
   touch_init();
   rtc_init();
+  power_init();  // Initialize power button
 
   lv_init();
   lv_tick_set_cb(millis_cb);
@@ -64,7 +71,7 @@ void setup() {
 #ifdef DIRECT_RENDER_MODE
   bufSize = screenWidth * screenHeight;
 #else
-  bufSize = screenWidth * 50;
+  bufSize = screenWidth * 80;  // Increased from 50 to 80 for smoother animations
 #endif
 
 #ifdef ESP32
@@ -97,17 +104,32 @@ void setup() {
 
     ui_init();
 
-    // Initialize battery state after UI/Flow system is ready
+    // Initialize battery and brightness after UI/Flow system is ready
     battery_init();
+    brightness_init();
 
     // Set initial time to avoid flicker from default value
     rtc_update_display();
   }
 
-  USBSerial.println("Setup done");
+  USBSerial.println("Ready");
 }
 
 void loop() {
+  static uint32_t lastBatteryUpdate = 0;
+  uint32_t now = millis();
+
+  // Always check power button (wake source)
+  power_check_button();
+
+  // Skip most processing if sleeping
+  if (power_is_sleeping()) {
+    delay(100);  // Long sleep when display off
+    return;
+  }
+
+  // ===== AWAKE MODE - Full processing =====
+
   lv_task_handler();
 
 #ifdef DIRECT_RENDER_MODE
@@ -124,7 +146,14 @@ void loop() {
 
   ui_tick();
   rtc_tick();
-  battery_update();  // Update battery state
+  brightness_update();
 
-  delay(5);
+  // Update battery less frequently (every 5 seconds instead of every loop)
+  if (now - lastBatteryUpdate >= 5000) {
+    battery_update();
+    lastBatteryUpdate = now;
+  }
+
+  // Minimal delay for responsiveness
+  delay(1);
 }

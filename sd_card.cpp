@@ -12,15 +12,14 @@ static void *sd_open_cb(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode) {
   if (mode == LV_FS_MODE_WR) flags = "w";
   else if (mode == (LV_FS_MODE_WR | LV_FS_MODE_RD)) flags = "rw";
 
-  String full_path = String("/") + path;
-  File f = SD_MMC.open(full_path.c_str(), flags);
+  // Use stack allocation instead of String to avoid heap fragmentation
+  char full_path[256];
+  snprintf(full_path, sizeof(full_path), "/%s", path);
+
+  File f = SD_MMC.open(full_path, flags);
   if (!f) {
-    USBSerial.print("Failed to open: ");
-    USBSerial.println(full_path);
     return NULL;
   }
-  USBSerial.print("Opened: ");
-  USBSerial.println(full_path);
 
   File *fp = new File(f);
   return (void *)fp;
