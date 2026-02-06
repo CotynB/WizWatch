@@ -15,10 +15,10 @@ void rtc_init() {
   }
 
   uint16_t year = 2025;
-  uint8_t month = 7;
-  uint8_t day = 21;
-  uint8_t hour = 11;
-  uint8_t minute = 9;
+  uint8_t month = 2;
+  uint8_t day = 2;
+  uint8_t hour = 12;
+  uint8_t minute = 48;
   uint8_t second = 41;
   rtc.setDateTime(year, month, day, hour, minute, second);
 }
@@ -29,11 +29,10 @@ void rtc_update_label(lv_obj_t *label) {
     RTC_DateTime datetime = rtc.getDateTime();
 
     char buf[32];
-    snprintf(buf, sizeof(buf), "%02d:%02d:%02d\n%02d-%02d-%04d",
-             datetime.getHour(), datetime.getMinute(), datetime.getSecond(),
+    snprintf(buf, sizeof(buf), "%02d:%02d\n%02d-%02d-%04d",
+             datetime.getHour(), datetime.getMinute(),
              datetime.getDay(), datetime.getMonth(), datetime.getYear());
 
     lv_label_set_text(label, buf);
-    lv_obj_set_style_text_font(label, &lv_font_montserrat_40, LV_PART_MAIN);
   }
 }

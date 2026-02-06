@@ -8,6 +8,7 @@
 #include "display.h"
 #include "touch.h"
 #include "rtc_clock.h"
+#include "sd_card.h"
 #include "ui.h"
 
 HWCDC USBSerial;
@@ -46,6 +47,8 @@ void setup() {
 
   lv_init();
   lv_tick_set_cb(millis_cb);
+
+  sd_card_init();
 
 #if LV_USE_LOG != 0
   lv_log_register_print_cb(my_print);
@@ -109,7 +112,7 @@ void loop() {
 #endif
 #endif
 
-  delay(5);
+  ui_tick();
 
-  rtc_update_label(label);
+  delay(5);
 }

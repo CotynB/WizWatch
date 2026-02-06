@@ -19,20 +19,14 @@ void create_screen_main() {
     lv_obj_t *obj = lv_obj_create(0);
     objects.main = obj;
     lv_obj_set_pos(obj, 0, 0);
-    lv_obj_set_size(obj, 368, 448);
+    lv_obj_set_size(obj, 410, 502);
     {
         lv_obj_t *parent_obj = obj;
-        {
-            lv_obj_t *obj = lv_label_create(parent_obj);
-            lv_obj_set_pos(obj, 140, 202);
-            lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-            lv_label_set_text(obj, "Hello, world!");
-        }
         {
             // FOND
             lv_obj_t *obj = lv_image_create(parent_obj);
             objects.fond = obj;
-            lv_obj_set_pos(obj, 0, -30);
+            lv_obj_set_pos(obj, 0, 0);
             lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
             lv_image_set_src(obj, &img_fond);
         }
@@ -40,37 +34,38 @@ void create_screen_main() {
             // BatteryFull
             lv_obj_t *obj = lv_image_create(parent_obj);
             objects.battery_full = obj;
-            lv_obj_set_pos(obj, 22, 25);
+            lv_obj_set_pos(obj, 70, 33);
             lv_obj_set_size(obj, 36, 54);
             lv_image_set_src(obj, &img_full);
-            lv_image_set_scale(obj, 10);
+            lv_image_set_scale(obj, 200);
         }
         {
             // BatteryHalfFull
             lv_obj_t *obj = lv_image_create(parent_obj);
             objects.battery_half_full = obj;
-            lv_obj_set_pos(obj, 23, 26);
+            lv_obj_set_pos(obj, 71, 34);
             lv_obj_set_size(obj, 36, 54);
             lv_image_set_src(obj, &img_half_full);
-            lv_image_set_scale(obj, 10);
+            lv_image_set_scale(obj, 200);
         }
         {
             // BatteryEmpty
             lv_obj_t *obj = lv_image_create(parent_obj);
             objects.battery_empty = obj;
-            lv_obj_set_pos(obj, 23, 26);
+            lv_obj_set_pos(obj, 71, 34);
             lv_obj_set_size(obj, 36, 54);
             lv_image_set_src(obj, &img_empty);
-            lv_image_set_scale(obj, 10);
+            lv_image_set_scale(obj, 200);
         }
         {
             // TimeLBL
             lv_obj_t *obj = lv_label_create(parent_obj);
             objects.time_lbl = obj;
-            lv_obj_set_pos(obj, 125, 110);
-            lv_obj_set_size(obj, 120, 43);
-            lv_obj_set_style_text_font(obj, &lv_font_montserrat_42, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_pos(obj, 39, 144);
+            lv_obj_set_size(obj, 333, 43);
+            lv_obj_set_style_text_font(obj, &lv_font_montserrat_48, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_text_color(obj, lv_color_hex(0xffb4e898), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_label_set_text(obj, "");
         }
     }
@@ -93,7 +88,7 @@ void tick_screen_main() {
     void *flowState = getFlowState(0, 0);
     (void)flowState;
     {
-        bool new_val = evalBooleanProperty(flowState, 3, 3, "Failed to evaluate Hidden flag");
+        bool new_val = evalBooleanProperty(flowState, 2, 3, "Failed to evaluate Hidden flag");
         bool cur_val = lv_obj_has_flag(objects.battery_full, LV_OBJ_FLAG_HIDDEN);
         if (new_val != cur_val) {
             tick_value_change_obj = objects.battery_full;
@@ -103,7 +98,7 @@ void tick_screen_main() {
         }
     }
     {
-        bool new_val = evalBooleanProperty(flowState, 4, 3, "Failed to evaluate Hidden flag");
+        bool new_val = evalBooleanProperty(flowState, 3, 3, "Failed to evaluate Hidden flag");
         bool cur_val = lv_obj_has_flag(objects.battery_half_full, LV_OBJ_FLAG_HIDDEN);
         if (new_val != cur_val) {
             tick_value_change_obj = objects.battery_half_full;
@@ -113,7 +108,7 @@ void tick_screen_main() {
         }
     }
     {
-        bool new_val = evalBooleanProperty(flowState, 5, 3, "Failed to evaluate Hidden flag");
+        bool new_val = evalBooleanProperty(flowState, 4, 3, "Failed to evaluate Hidden flag");
         bool cur_val = lv_obj_has_flag(objects.battery_empty, LV_OBJ_FLAG_HIDDEN);
         if (new_val != cur_val) {
             tick_value_change_obj = objects.battery_empty;
@@ -123,7 +118,7 @@ void tick_screen_main() {
         }
     }
     {
-        const char *new_val = evalTextProperty(flowState, 6, 3, "Failed to evaluate Text in Label widget");
+        const char *new_val = evalTextProperty(flowState, 5, 3, "Failed to evaluate Text in Label widget");
         const char *cur_val = lv_label_get_text(objects.time_lbl);
         if (strcmp(new_val, cur_val) != 0) {
             tick_value_change_obj = objects.time_lbl;

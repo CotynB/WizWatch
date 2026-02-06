@@ -1,8 +1,11 @@
 {
   "navigation": {
     "selectedUserPageObject": "[WizWatch.eez-project]:/userPages/0",
-    "selectedBitmapObject": "[WizWatch.eez-project]:/bitmaps/3",
-    "subnavigationSelectedItems": {}
+    "selectedGlobalVariableObject": "[WizWatch.eez-project]:/variables/globalVariables/1",
+    "selectedBitmapObject": "[WizWatch.eez-project]:/bitmaps/0",
+    "subnavigationSelectedItems": {
+      "variables-tab/sub-navigation/selected-item": "Global"
+    }
   },
   "layoutModel": {
     "rootEditor": {
@@ -22,6 +25,7 @@
           },
           {
             "type": "border",
+            "selected": 2,
             "size": 240,
             "location": "right",
             "children": [
@@ -77,6 +81,7 @@
           },
           {
             "type": "border",
+            "selected": 0,
             "location": "bottom",
             "children": [
               {
@@ -129,7 +134,6 @@
                   "type": "tabset",
                   "id": "#e0071128-4cbf-4a2b-989d-cd45e5599de7",
                   "weight": 1,
-                  "selected": 1,
                   "enableClose": false,
                   "children": [
                     {
@@ -156,8 +160,7 @@
                       "enableClose": false,
                       "icon": "material:code"
                     }
-                  ],
-                  "active": true
+                  ]
                 },
                 {
                   "type": "tabset",
@@ -197,10 +200,34 @@
               "type": "tabset",
               "id": "EDITORS",
               "weight": 65,
-              "selected": -1,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
-              "children": []
+              "children": [
+                {
+                  "type": "tab",
+                  "id": "#3cdcfcaf-03c2-4afd-8105-1b5e89daf727",
+                  "name": "Settings",
+                  "component": "editor",
+                  "config": {
+                    "objectPath": "[WizWatch.eez-project]:/settings",
+                    "subObjectPath": "[WizWatch.eez-project]:/settings",
+                    "permanent": false
+                  },
+                  "icon": "material:settings"
+                },
+                {
+                  "type": "tab",
+                  "id": "#22a1edbe-e60c-4259-a239-8117055444b6",
+                  "name": "Main",
+                  "component": "editor",
+                  "config": {
+                    "objectPath": "[WizWatch.eez-project]:/userPages/0",
+                    "permanent": false
+                  },
+                  "icon": "svg:page"
+                }
+              ],
+              "active": true
             },
             {
               "type": "row",
@@ -529,7 +556,8 @@
                       "component": "bitmaps",
                       "enableClose": false
                     }
-                  ]
+                  ],
+                  "active": true
                 },
                 {
                   "type": "tabset",
@@ -968,17 +996,18 @@
     "[WizWatch.eez-project]:/userPages/0[flow-state]": {
       "selection": {
         "0": {
-          "2": {
+          "1": {},
+          "4": {
             "$selected": true
           }
         }
       },
       "transform": {
         "translate": {
-          "x": -227.36081901100567,
-          "y": -465.15279850746265
+          "x": -51,
+          "y": -271.69047619047615
         },
-        "scale": 1.75
+        "scale": 1.25
       },
       "timeline": {
         "isEditorActive": false,
@@ -994,6 +1023,7 @@
   "searchMatchWholeWord": false,
   "replaceEnabled": false,
   "replaceText": "",
+  "pageRuntimeFrontFace": true,
   "breakpoints": {},
   "watchExpressions": [],
   "showComponentDescriptions": true,
@@ -1004,6 +1034,6 @@
   "lvglExpandedPropertiesGroup": [],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
-  "flowZoom": 1.75,
+  "flowZoom": 1.25,
   "implementationLanguage": "C"
 }
