@@ -9,7 +9,11 @@
 #include "touch.h"
 #include "rtc_clock.h"
 #include "sd_card.h"
-#include "ui.h"
+#include "battery.h"
+
+// EEZ Studio generated UI
+#include "ui/WizWatch/src/ui/ui.h"
+#include "ui/WizWatch/src/ui/vars.h"
 
 HWCDC USBSerial;
 
@@ -91,7 +95,13 @@ void setup() {
     lv_indev_set_read_cb(indev, my_touchpad_read);
     lv_display_add_event_cb(disp, rounder_event_cb, LV_EVENT_INVALIDATE_AREA, NULL);
 
-    ui_create();
+    ui_init();
+
+    // Initialize battery state after UI/Flow system is ready
+    battery_init();
+
+    // Set initial time to avoid flicker from default value
+    rtc_update_display();
   }
 
   USBSerial.println("Setup done");
@@ -113,6 +123,8 @@ void loop() {
 #endif
 
   ui_tick();
+  rtc_tick();
+  battery_update();  // Update battery state
 
   delay(5);
 }

@@ -14,7 +14,13 @@ static void *sd_open_cb(lv_fs_drv_t *drv, const char *path, lv_fs_mode_t mode) {
 
   String full_path = String("/") + path;
   File f = SD_MMC.open(full_path.c_str(), flags);
-  if (!f) return NULL;
+  if (!f) {
+    USBSerial.print("Failed to open: ");
+    USBSerial.println(full_path);
+    return NULL;
+  }
+  USBSerial.print("Opened: ");
+  USBSerial.println(full_path);
 
   File *fp = new File(f);
   return (void *)fp;

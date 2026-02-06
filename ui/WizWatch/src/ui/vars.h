@@ -22,6 +22,8 @@ enum FlowGlobalVariables {
 
 // Native global variables
 
+extern const char *get_var_rtc_time();
+extern void set_var_rtc_time(const char *value);
 
 
 #ifdef __cplusplus

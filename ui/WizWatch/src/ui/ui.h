@@ -10,7 +10,7 @@
 
 
 #if defined(EEZ_FOR_LVGL)
-#include <eez/flow/lvgl_api.h>
+#include <eez-framework.h>
 #endif
 
 #if !defined(EEZ_FOR_LVGL)
@@ -21,7 +21,7 @@
 extern "C" {
 #endif
 
-extern const uint8_t assets[1700];
+extern const uint8_t assets[1668];
 
 void ui_init();
 void ui_tick();

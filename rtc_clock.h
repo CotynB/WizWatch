@@ -6,4 +6,5 @@
 extern SensorPCF85063 rtc;
 
 void rtc_init();
-void rtc_update_label(lv_obj_t *label);
+void rtc_tick();
+void rtc_update_display();  // Force immediate display update

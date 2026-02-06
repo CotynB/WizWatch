@@ -2,11 +2,19 @@
 #include <Wire.h>
 #include "pin_config.h"
 #include "HWCDC.h"
+#include "ui/WizWatch/src/ui/screens.h"
+#include "ui/WizWatch/src/ui/vars.h"  // For EEZ native variables
+
+// EEZ Studio generated native variable functions
+extern "C" {
+  const char *get_var_rtc_time();
+  void set_var_rtc_time(const char *value);
+}
 
 extern HWCDC USBSerial;
 
 SensorPCF85063 rtc;
-uint32_t lastMillis;
+static uint32_t lastMillis = 0;
 
 void rtc_init() {
   if (!rtc.begin(Wire, IIC_SDA, IIC_SCL)) {
@@ -21,18 +29,44 @@ void rtc_init() {
   uint8_t minute = 48;
   uint8_t second = 41;
   rtc.setDateTime(year, month, day, hour, minute, second);
+
+  // Initialize lastMillis to prevent immediate update
+  lastMillis = millis();
 }
 
-void rtc_update_label(lv_obj_t *label) {
-  if (millis() - lastMillis > 1000) {
-    lastMillis = millis();
-    RTC_DateTime datetime = rtc.getDateTime();
+void rtc_update_display() {
+  RTC_DateTime datetime = rtc.getDateTime();
 
-    char buf[32];
-    snprintf(buf, sizeof(buf), "%02d:%02d\n%02d-%02d-%04d",
-             datetime.getHour(), datetime.getMinute(),
-             datetime.getDay(), datetime.getMonth(), datetime.getYear());
+  // Debug: print raw values
+  USBSerial.print("RTC Values - H:");
+  USBSerial.print(datetime.getHour());
+  USBSerial.print(" M:");
+  USBSerial.print(datetime.getMinute());
+  USBSerial.print(" D:");
+  USBSerial.print(datetime.getDay());
+  USBSerial.print(" M:");
+  USBSerial.print(datetime.getMonth());
+  USBSerial.print(" Y:");
+  USBSerial.println(datetime.getYear());
 
-    lv_label_set_text(label, buf);
+  char buf[100];
+  // Temporarily use simple format for testing
+  snprintf(buf, sizeof(buf), "%02d:%02d",
+           datetime.getHour(), datetime.getMinute());
+
+  USBSerial.print("Formatted: ");
+  USBSerial.println(buf);
+
+  // Update EEZ native variable - Flow will read this automatically
+  set_var_rtc_time(buf);
+}
+
+void rtc_tick() {
+  uint32_t now = millis();
+
+  // Update every 1000ms
+  if (now - lastMillis >= 1000) {
+    lastMillis = now;
+    rtc_update_display();
   }
 }
