@@ -5,6 +5,7 @@
 #include "HWCDC.h"
 #include "display.h"
 #include "brightness.h"
+#include "bluetooth.h"
 
 extern HWCDC USBSerial;
 extern Arduino_GFX *gfx;
@@ -59,19 +60,18 @@ void power_sleep() {
 
     sleeping = true;
 
-    // Step 1: Turn off display backlight (this is enough - screen goes black)
+    // Step 1: Turn off display backlight
     brightness_set(0);
-    USBSerial.println("Backlight OFF (screen black)");
-    delay(10);
+    USBSerial.println("Backlight OFF");
 
-    // Step 2: Reduce CPU frequency for extra power saving
-    setCpuFrequencyMhz(80);  // Reduce from 240MHz to 80MHz
+    // Step 2: Stop BLE advertising to save power
+    bluetooth_sleep();
+
+    // Step 3: Reduce CPU frequency
+    setCpuFrequencyMhz(80);
     USBSerial.println("CPU reduced to 80MHz");
 
-    // NOTE: We don't call gfx->displayOff() because it might not wake properly
-    // Just turning backlight to 0 is sufficient - screen appears off
-
-    USBSerial.println("Sleep mode active - press button to wake");
+    USBSerial.println("Sleep mode active");
 }
 
 void power_wake() {
@@ -90,8 +90,11 @@ void power_wake() {
     display_set_brightness(51);  // 20% as minimum
     delay(50);
 
-    // Then restore user's brightness from slider
+    // Restore user's brightness from slider
     brightness_update();
+
+    // Resume BLE advertising
+    bluetooth_wake();
 }
 
 bool power_is_sleeping() {

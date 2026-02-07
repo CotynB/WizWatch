@@ -13,6 +13,7 @@
 #include "battery.h"
 #include "brightness.h"
 #include "power.h"
+#include "bluetooth.h"
 
 // EEZ Studio generated UI
 #include "ui/WizWatch/src/ui/ui.h"
@@ -46,10 +47,9 @@ void setup() {
   USBSerial.begin(115200);
   USBSerial.println("WizWatch starting...");
 
-  // Disable WiFi and Bluetooth for maximum power saving
+  // Disable WiFi for power saving (keep BLE for phone pairing)
   WiFi.mode(WIFI_OFF);
-  btStop();
-  USBSerial.println("WiFi/BT disabled for power saving");
+  USBSerial.println("WiFi disabled for power saving");
 
   display_init();
   touch_init();
@@ -112,6 +112,9 @@ void setup() {
     rtc_update_display();
   }
 
+  // Initialize Bluetooth last (after UI is ready)
+  bluetooth_init();
+
   USBSerial.println("Ready");
 }
 
@@ -147,9 +150,10 @@ void loop() {
   ui_tick();
   rtc_tick();
   brightness_update();
+  bluetooth_update();  // Handle BLE connections
 
   // Update battery less frequently (every 5 seconds instead of every loop)
-  if (now - lastBatteryUpdate >= 5000) {
+  if (now - lastBatteryUpdate >= 50000) {
     battery_update();
     lastBatteryUpdate = now;
   }

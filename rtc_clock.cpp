@@ -22,13 +22,7 @@ void rtc_init() {
     while (1) delay(1000);
   }
 
-  uint16_t year = 2025;
-  uint8_t month = 2;
-  uint8_t day = 2;
-  uint8_t hour = 12;
-  uint8_t minute = 48;
-  uint8_t second = 41;
-  rtc.setDateTime(year, month, day, hour, minute, second);
+  // Time will be synced from phone via BLE
 
   // Initialize lastMillis to prevent immediate update
   lastMillis = millis();
@@ -48,6 +42,27 @@ void rtc_update_display() {
     strcpy(last_buf, buf);
     set_var_rtc_time(buf);
   }
+}
+
+void rtc_set_from_epoch(long epoch) {
+  time_t ts = (time_t)epoch;
+  struct tm *t = gmtime(&ts);
+  if (!t) return;
+
+  rtc.setDateTime(
+    t->tm_year + 1900,
+    t->tm_mon + 1,
+    t->tm_mday,
+    t->tm_hour,
+    t->tm_min,
+    t->tm_sec
+  );
+
+  USBSerial.printf("[RTC] Set to %04d-%02d-%02d %02d:%02d:%02d\n",
+    t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
+    t->tm_hour, t->tm_min, t->tm_sec);
+
+  rtc_update_display();
 }
 
 void rtc_tick() {
