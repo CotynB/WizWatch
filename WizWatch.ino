@@ -14,6 +14,7 @@
 #include "brightness.h"
 #include "power.h"
 #include "bluetooth.h"
+#include "notification_ui.h"
 
 // EEZ Studio generated UI
 #include "ui/WizWatch/src/ui/ui.h"
@@ -111,6 +112,9 @@ void setup() {
     // Set initial time to avoid flicker from default value
     rtc_update_display();
   }
+
+  // Initialize notification overlay (after UI)
+  notification_ui_init();
 
   // Initialize Bluetooth last (after UI is ready)
   bluetooth_init();

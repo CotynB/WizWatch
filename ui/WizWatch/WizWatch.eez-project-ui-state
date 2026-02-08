@@ -1,8 +1,8 @@
 {
   "navigation": {
     "selectedUserPageObject": "[WizWatch.eez-project]:/userPages/0",
-    "selectedActionObject": "[WizWatch.eez-project]:/actions/1",
-    "selectedGlobalVariableObject": "[WizWatch.eez-project]:/variables/globalVariables/0",
+    "selectedActionObject": "[WizWatch.eez-project]:/actions/2",
+    "selectedGlobalVariableObject": "[WizWatch.eez-project]:/variables/globalVariables/4",
     "selectedBitmapObject": "[WizWatch.eez-project]:/bitmaps/5",
     "subnavigationSelectedItems": {
       "variables-tab/sub-navigation/selected-item": "Global"
@@ -169,7 +169,8 @@
                       "enableClose": false,
                       "icon": "material:code"
                     }
-                  ]
+                  ],
+                  "active": true
                 },
                 {
                   "type": "tabset",
@@ -200,7 +201,7 @@
             {
               "type": "tabset",
               "id": "EDITORS",
-              "weight": 65,
+              "weight": 61.36853448275862,
               "selected": 2,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
@@ -220,10 +221,10 @@
                 {
                   "type": "tab",
                   "id": "#88a11e26-a059-4ae9-b4eb-1dfd2ce842a2",
-                  "name": "GoToMain",
+                  "name": "addnotification",
                   "component": "editor",
                   "config": {
-                    "objectPath": "[WizWatch.eez-project]:/actions/1",
+                    "objectPath": "[WizWatch.eez-project]:/actions/2",
                     "permanent": false
                   },
                   "icon": "material:code"
@@ -239,13 +240,12 @@
                   },
                   "icon": "svg:page"
                 }
-              ],
-              "active": true
+              ]
             },
             {
               "type": "row",
               "id": "#5dad948f-1803-42fc-8e44-0a26492061a1",
-              "weight": 20,
+              "weight": 23.63146551724138,
               "children": [
                 {
                   "type": "tabset",
@@ -1023,16 +1023,17 @@
         "0": {
           "0": {},
           "1": {},
-          "2": {
-            "$selected": true
-          },
+          "2": {},
           "4": {},
-          "5": {}
+          "5": {},
+          "6": {
+            "$selected": true
+          }
         }
       },
       "transform": {
         "translate": {
-          "x": -205,
+          "x": -186,
           "y": -251
         },
         "scale": 1.25
@@ -1089,6 +1090,20 @@
         },
         "scale": 1
       }
+    },
+    "[WizWatch.eez-project]:/actions/2[flow-state]": {
+      "selection": {
+        "0": {
+          "$selected": true
+        }
+      },
+      "transform": {
+        "translate": {
+          "x": 0,
+          "y": 0
+        },
+        "scale": 1
+      }
     }
   },
   "activeOutputSection": 0,
@@ -1110,7 +1125,7 @@
     "POSITION AND SIZE",
     "BACKGROUND",
     "TEXT",
-    "IMAGE"
+    "LAYOUT"
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,

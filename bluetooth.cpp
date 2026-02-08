@@ -6,6 +6,7 @@
 #include <ArduinoJson.h>
 #include "HWCDC.h"
 #include "rtc_clock.h"
+#include "notification_ui.h"
 
 extern HWCDC USBSerial;
 
@@ -172,6 +173,9 @@ static void handleGBMessage(const String &json) {
 
         USBSerial.printf("[BLE] Notification from %s: %s\n",
             notif.src.c_str(), notif.title.c_str());
+
+        // Show pop-up on watch display
+        notification_ui_show(notif.src.c_str(), notif.title.c_str(), notif.body.c_str());
     }
     // ---- Dismiss notification ----
     else if (strcmp(type, "notify-") == 0) {
