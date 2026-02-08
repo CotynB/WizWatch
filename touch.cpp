@@ -1,6 +1,7 @@
 #include "touch.h"
 #include <Wire.h>
 #include "HWCDC.h"
+#include "power.h"
 
 extern HWCDC USBSerial;
 
@@ -23,12 +24,21 @@ void my_touchpad_read(lv_indev_t *indev, lv_indev_data_t *data) {
     int32_t touchY = FT3168->IIC_Read_Device_Value(FT3168->Arduino_IIC_Touch::Value_Information::TOUCH_COORDINATE_Y);
 
     FT3168->IIC_Interrupt_Flag = false;
+    power_reset_inactivity();
     data->state = LV_INDEV_STATE_PR;
     data->point.x = touchX;
     data->point.y = touchY;
   } else {
     data->state = LV_INDEV_STATE_REL;
   }
+}
+
+bool touch_has_activity() {
+  if (FT3168->IIC_Interrupt_Flag) {
+    FT3168->IIC_Interrupt_Flag = false;
+    return true;
+  }
+  return false;
 }
 
 void touch_init() {

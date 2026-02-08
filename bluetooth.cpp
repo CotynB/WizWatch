@@ -7,6 +7,9 @@
 #include "HWCDC.h"
 #include "rtc_clock.h"
 #include "notification_ui.h"
+#include "power.h"
+#include <eez/flow/flow.h>
+#include "ui/WizWatch/src/ui/vars.h"
 
 extern HWCDC USBSerial;
 
@@ -138,11 +141,17 @@ static void processRxBuffer() {
 }
 
 static void handleGBMessage(const String &json) {
-    // Sanitize \xNN sequences (invalid JSON, sent by Gadgetbridge for accented chars)
+    // Convert \xNN hex escapes to actual bytes (Gadgetbridge sends these for accented chars)
     String sanitized = json;
     int pos = 0;
     while ((pos = sanitized.indexOf("\\x", pos)) >= 0) {
-        sanitized = sanitized.substring(0, pos) + "?" + sanitized.substring(pos + 4);
+        if (pos + 3 < (int)sanitized.length()) {
+            char c = (char)strtol(sanitized.substring(pos + 2, pos + 4).c_str(), nullptr, 16);
+            sanitized = sanitized.substring(0, pos) + String(c) + sanitized.substring(pos + 4);
+            pos++;
+        } else {
+            pos += 2;
+        }
     }
 
     JsonDocument doc;
@@ -174,7 +183,8 @@ static void handleGBMessage(const String &json) {
         USBSerial.printf("[BLE] Notification from %s: %s\n",
             notif.src.c_str(), notif.title.c_str());
 
-        // Show pop-up on watch display
+        // Show pop-up on watch display and keep screen on
+        power_reset_inactivity();
         notification_ui_show(notif.src.c_str(), notif.title.c_str(), notif.body.c_str());
     }
     // ---- Dismiss notification ----
@@ -231,6 +241,7 @@ static void handleGBMessage(const String &json) {
         callInfo.name   = doc["name"] | "";
         callInfo.number = doc["number"] | "";
         callInfo.active = (callInfo.cmd == "incoming" || callInfo.cmd == "start");
+        if (callInfo.active) power_reset_inactivity();
         USBSerial.printf("[BLE] Call: %s from %s\n",
             callInfo.cmd.c_str(), callInfo.name.c_str());
     }
@@ -319,6 +330,7 @@ void bluetooth_update() {
         rxBufLen = 0;
         rxLine = "";
         oldDeviceConnected = false;
+        eez::flow::setGlobalVariable(FLOW_GLOBAL_VARIABLE_PHONE_CONNECTED_VAR, eez::Value(1));
         USBSerial.println("[BLE] Cleaning up connection...");
     }
 
@@ -340,6 +352,7 @@ void bluetooth_update() {
         rxLine = "";
         disconnectTime = 0;
         oldDeviceConnected = true;
+        eez::flow::setGlobalVariable(FLOW_GLOBAL_VARIABLE_PHONE_CONNECTED_VAR, eez::Value(0));
     }
 }
 
@@ -351,6 +364,10 @@ void bluetooth_disconnect() {
 
 bool bluetooth_is_connected() {
     return deviceConnected;
+}
+
+bool bluetooth_has_pending_data() {
+    return rxBufLen > 0;
 }
 
 void bluetooth_sleep() {

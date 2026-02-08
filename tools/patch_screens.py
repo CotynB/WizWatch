@@ -24,11 +24,15 @@ def discover_image_replacements():
         print(f"WARNING: Images directory not found: {IMAGES_DIR}")
         return replacements
 
+    seen = set()
     for filename in os.listdir(IMAGES_DIR):
-        if filename.startswith("ui_image_") and filename.endswith(".cpp"):
-            # Extract name: ui_image_fond.cpp -> fond
-            name = filename[9:-4]  # Strip "ui_image_" prefix and ".cpp" suffix
-            replacements[f"&img_{name}"] = f'"S:{name}.bin"'
+        if filename.startswith("ui_image_") and (filename.endswith(".cpp") or filename.endswith(".c")):
+            # Extract name: ui_image_fond.cpp -> fond or ui_image_fond.c -> fond
+            ext_len = 4 if filename.endswith(".cpp") else 2
+            name = filename[9:-ext_len]  # Strip "ui_image_" prefix and extension
+            if name not in seen:
+                seen.add(name)
+                replacements[f"&img_{name}"] = f'"S:{name}.bin"'
 
     return replacements
 
@@ -46,6 +50,11 @@ def patch_screens_cpp(image_replacements):
 
     # Remove images.h include since we're loading from SD
     content = content.replace('#include "images.h"\n', '')
+
+    # Remove lv_image_set_scale() calls on SD-loaded images.
+    # LVGL's BIN decoder in streaming mode (LV_BIN_DECODER_RAM_LOAD=0)
+    # cannot render transformed/scaled images from files.
+    content = re.sub(r'\n\s*lv_image_set_scale\(obj, \d+\);', '', content)
 
     if content != original:
         with open(SCREENS_CPP, "w") as f:

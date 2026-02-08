@@ -13,6 +13,7 @@ extern Arduino_GFX *gfx;
 XPowersPMU PMU;
 static bool sleeping = false;
 static uint8_t last_brightness = 50;  // Store brightness before sleep
+static uint32_t lastActivityTime = 0;
 
 void power_init() {
     // Initialize PMU for power button
@@ -33,6 +34,8 @@ void power_init() {
     PMU.enableIRQ(XPOWERS_AXP2101_PKEY_SHORT_IRQ);
 
     USBSerial.println("Power button enabled");
+
+    lastActivityTime = millis();
 }
 
 void power_check_button() {
@@ -76,6 +79,7 @@ void power_sleep() {
 
 void power_wake() {
     sleeping = false;
+    lastActivityTime = millis();
 
     // Restore CPU frequency to full speed
     setCpuFrequencyMhz(240);
@@ -99,6 +103,17 @@ void power_wake() {
 
 bool power_is_sleeping() {
     return sleeping;
+}
+
+void power_reset_inactivity() {
+    lastActivityTime = millis();
+}
+
+void power_check_inactivity() {
+    if (!sleeping && (millis() - lastActivityTime >= INACTIVITY_TIMEOUT_MS)) {
+        USBSerial.println("Inactivity timeout - going to sleep");
+        power_sleep();
+    }
 }
 
 void power_optimize_idle() {

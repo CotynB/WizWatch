@@ -1,5 +1,6 @@
 #include "notification_ui.h"
 #include <lvgl.h>
+#include "ui/WizWatch/src/ui/fonts.h"
 
 // Dimensions
 #define NOTIF_WIDTH      380
@@ -109,14 +110,14 @@ static lv_obj_t* create_card(const char* src, const char* title, const char* bod
     // App name
     lv_obj_t *srcLbl = lv_label_create(card);
     lv_obj_set_width(srcLbl, NOTIF_WIDTH - 32);
-    lv_obj_set_style_text_font(srcLbl, &lv_font_montserrat_20, LV_PART_MAIN);
+    lv_obj_set_style_text_font(srcLbl, &ui_font_dot_gothic16_20, LV_PART_MAIN);
     lv_obj_set_style_text_color(srcLbl, COLOR_SRC, LV_PART_MAIN);
     lv_label_set_text(srcLbl, src ? src : "");
 
     // Title
     lv_obj_t *titleLbl = lv_label_create(card);
     lv_obj_set_width(titleLbl, NOTIF_WIDTH - 32);
-    lv_obj_set_style_text_font(titleLbl, &lv_font_montserrat_18, LV_PART_MAIN);
+    lv_obj_set_style_text_font(titleLbl, &ui_font_dot_gothic16_18, LV_PART_MAIN);
     lv_obj_set_style_text_color(titleLbl, COLOR_TITLE, LV_PART_MAIN);
     lv_label_set_long_mode(titleLbl, LV_LABEL_LONG_DOT);
     lv_label_set_text(titleLbl, title ? title : "");
@@ -125,7 +126,7 @@ static lv_obj_t* create_card(const char* src, const char* title, const char* bod
     lv_obj_t *bodyLbl = lv_label_create(card);
     lv_obj_set_width(bodyLbl, NOTIF_WIDTH - 32);
     lv_obj_set_height(bodyLbl, 20);
-    lv_obj_set_style_text_font(bodyLbl, &lv_font_montserrat_16, LV_PART_MAIN);
+    lv_obj_set_style_text_font(bodyLbl, &ui_font_dot_gothic16_16, LV_PART_MAIN);
     lv_obj_set_style_text_color(bodyLbl, COLOR_BODY, LV_PART_MAIN);
     lv_label_set_long_mode(bodyLbl, LV_LABEL_LONG_DOT);
     lv_label_set_text(bodyLbl, body ? body : "");

@@ -131,8 +131,14 @@ void loop() {
 
   // Skip most processing if sleeping
   if (power_is_sleeping()) {
-    delay(100);  // Long sleep when display off
-    return;
+    // Wake on touch or incoming BLE data
+    if (touch_has_activity() || bluetooth_has_pending_data()) {
+      power_wake();
+      // Fall through to normal processing
+    } else {
+      delay(100);  // Long sleep when display off
+      return;
+    }
   }
 
   // ===== AWAKE MODE - Full processing =====
@@ -155,6 +161,7 @@ void loop() {
   rtc_tick();
   brightness_update();
   bluetooth_update();  // Handle BLE connections
+  power_check_inactivity();  // Auto-sleep after 30s of no touch
 
   // Update battery less frequently (every 5 seconds instead of every loop)
   if (now - lastBatteryUpdate >= 50000) {

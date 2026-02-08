@@ -50,6 +50,7 @@ bool bluetooth_is_connected();
 // Power management
 void bluetooth_sleep();
 void bluetooth_wake();
+bool bluetooth_has_pending_data();  // True if BLE data waiting to be processed
 
 // Data accessors
 const bt_notification_t* bluetooth_get_latest_notification();

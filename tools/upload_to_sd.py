@@ -33,13 +33,17 @@ def discover_images(script_dir):
         print(f"WARNING: Images directory not found: {images_path}")
         return images
 
+    seen = set()
     for filename in os.listdir(images_path):
-        if filename.startswith("ui_image_") and filename.endswith(".c"):
-            # Extract name: ui_image_fond.c -> fond
-            name = filename[9:-2]  # Strip "ui_image_" prefix and ".c" suffix
-            src = os.path.join(IMAGES_DIR, filename)
-            output = f"{name}.bin"
-            images.append((src, output))
+        if filename.startswith("ui_image_") and (filename.endswith(".cpp") or filename.endswith(".c")):
+            # Extract name: ui_image_fond.c -> fond or ui_image_fond.cpp -> fond
+            ext_len = 4 if filename.endswith(".cpp") else 2
+            name = filename[9:-ext_len]  # Strip "ui_image_" prefix and extension
+            if name not in seen:
+                seen.add(name)
+                src = os.path.join(IMAGES_DIR, filename)
+                output = f"{name}.bin"
+                images.append((src, output))
 
     return sorted(images, key=lambda x: x[1])  # Sort by output name for consistency
 
