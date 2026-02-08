@@ -1,6 +1,7 @@
 #include "notification_ui.h"
 #include <lvgl.h>
 #include "ui/WizWatch/src/ui/fonts.h"
+#include "power.h"
 
 // Dimensions
 #define NOTIF_WIDTH      380
@@ -19,6 +20,7 @@
 
 // Container for all notification cards
 static lv_obj_t *container = nullptr;
+static bool sleepWakeBg = false;
 
 // Forward declarations
 static lv_obj_t* create_card(const char* src, const char* title, const char* body);
@@ -43,6 +45,17 @@ void notification_ui_init() {
     // Let touch events pass through to the screen below
     lv_obj_clear_flag(container, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_add_flag(container, LV_OBJ_FLAG_EVENT_BUBBLE);
+}
+
+void notification_ui_set_sleep_bg(bool on) {
+    if (!container) return;
+    sleepWakeBg = on;
+    if (on) {
+        lv_obj_set_style_bg_color(container, lv_color_black(), LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(container, LV_OPA_COVER, LV_PART_MAIN);
+    } else {
+        lv_obj_set_style_bg_opa(container, LV_OPA_TRANSP, LV_PART_MAIN);
+    }
 }
 
 void notification_ui_show(const char* src, const char* title, const char* body) {
@@ -152,6 +165,12 @@ static void card_tap_cb(lv_event_t *e) {
 static void card_dismiss_anim_cb(lv_anim_t *a) {
     lv_obj_t *card = (lv_obj_t *)a->var;
     lv_obj_delete(card);
+
+    // If woke just for notifications and all dismissed, go back to sleep
+    if (sleepWakeBg && lv_obj_get_child_count(container) == 0) {
+        notification_ui_set_sleep_bg(false);
+        power_sleep();
+    }
 }
 
 static void remove_oldest_card() {

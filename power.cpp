@@ -6,73 +6,54 @@
 #include "display.h"
 #include "brightness.h"
 #include "bluetooth.h"
+#include "notification_ui.h"
 
 extern HWCDC USBSerial;
 extern Arduino_GFX *gfx;
 
 XPowersPMU PMU;
 static bool sleeping = false;
-static uint8_t last_brightness = 50;  // Store brightness before sleep
 static uint32_t lastActivityTime = 0;
 
 void power_init() {
-    // Initialize PMU for power button
     if (!PMU.begin(Wire, AXP2101_SLAVE_ADDRESS, IIC_SDA, IIC_SCL)) {
         USBSerial.println("PMU init failed!");
         return;
     }
 
     USBSerial.println("PMU initialized");
-
-    // Disable all interrupts first
     PMU.disableIRQ(XPOWERS_AXP2101_ALL_IRQ);
-
-    // Clear any pending interrupts
     PMU.clearIrqStatus();
-
-    // Enable only power button short press interrupt
     PMU.enableIRQ(XPOWERS_AXP2101_PKEY_SHORT_IRQ);
-
     USBSerial.println("Power button enabled");
-
     lastActivityTime = millis();
 }
 
 void power_check_button() {
-    // Check if power button was pressed
     if (PMU.getIrqStatus()) {
-        // Check if it was the power key
         if (PMU.isPekeyShortPressIrq()) {
             USBSerial.println("Power button pressed!");
-
-            // Toggle sleep mode
             if (sleeping) {
+                notification_ui_set_sleep_bg(false);
                 power_wake();
             } else {
                 power_sleep();
             }
         }
-
-        // Clear the interrupt
         PMU.clearIrqStatus();
     }
 }
 
 void power_sleep() {
-    USBSerial.println("Going to sleep - MAX POWER SAVE MODE");
-
+    USBSerial.println("Going to sleep");
     sleeping = true;
 
-    // Step 1: Turn off display backlight
     brightness_set(0);
-    USBSerial.println("Backlight OFF");
-
-    // Step 2: Stop BLE advertising to save power
+    if (gfx) {
+        gfx->displayOff();  // AMOLED panel truly off — saves power
+    }
     bluetooth_sleep();
-
-    // Step 3: Reduce CPU frequency
     setCpuFrequencyMhz(80);
-    USBSerial.println("CPU reduced to 80MHz");
 
     USBSerial.println("Sleep mode active");
 }
@@ -81,23 +62,16 @@ void power_wake() {
     sleeping = false;
     lastActivityTime = millis();
 
-    // Restore CPU frequency to full speed
     setCpuFrequencyMhz(240);
 
-    // Wake display from power-save mode
     if (gfx) {
         gfx->displayOn();
         delay(50);
     }
 
-    // Set minimum brightness first to wake display
-    display_set_brightness(51);  // 20% as minimum
+    display_set_brightness(51);
     delay(50);
-
-    // Restore user's brightness from slider
     brightness_update();
-
-    // Resume BLE advertising
     bluetooth_wake();
 }
 
@@ -114,16 +88,4 @@ void power_check_inactivity() {
         USBSerial.println("Inactivity timeout - going to sleep");
         power_sleep();
     }
-}
-
-void power_optimize_idle() {
-    // If sleeping, skip most processing and save power
-    if (sleeping) {
-        delay(100);  // Longer delay when sleeping = less CPU wake-ups
-        return;
-    }
-
-    // When awake, still optimize:
-    // Allow brief CPU sleep between loop iterations
-    delay(1);
 }

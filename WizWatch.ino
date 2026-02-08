@@ -131,19 +131,23 @@ void loop() {
 
   // Skip most processing if sleeping
   if (power_is_sleeping()) {
-    // Wake on touch or incoming BLE data
-    if (touch_has_activity() || bluetooth_has_pending_data()) {
+    if (touch_has_activity()) {
+      notification_ui_set_sleep_bg(false);
       power_wake();
-      // Fall through to normal processing
+    } else if (bluetooth_has_pending_data()) {
+      notification_ui_set_sleep_bg(true);
+      power_wake();
     } else {
-      delay(100);  // Long sleep when display off
+      delay(100);
       return;
     }
   }
 
-  // ===== AWAKE MODE - Full processing =====
+  // ===== AWAKE MODE =====
 
   lv_task_handler();
+
+  if (power_is_sleeping()) return;
 
 #ifdef DIRECT_RENDER_MODE
 #if defined(CANVAS) || defined(RGB_PANEL) || defined(DSI_PANEL)
