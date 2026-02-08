@@ -137,19 +137,15 @@ static void processRxBuffer() {
 }
 
 static void handleGBMessage(const String &json) {
-    JsonDocument doc;
-    DeserializationError err = deserializeJson(doc, json, DeserializationOption::Filter(JsonDocument()),
-                                                DeserializationOption::NestingLimit(10));
-    // If InvalidInput, retry allowing raw bytes (handles accented chars like é)
-    if (err == DeserializationError::InvalidInput) {
-        String sanitized = json;
-        // Replace \xNN escape sequences with '?'
-        int pos = 0;
-        while ((pos = sanitized.indexOf("\\x", pos)) >= 0) {
-            sanitized = sanitized.substring(0, pos) + "?" + sanitized.substring(pos + 4);
-        }
-        err = deserializeJson(doc, sanitized);
+    // Sanitize \xNN sequences (invalid JSON, sent by Gadgetbridge for accented chars)
+    String sanitized = json;
+    int pos = 0;
+    while ((pos = sanitized.indexOf("\\x", pos)) >= 0) {
+        sanitized = sanitized.substring(0, pos) + "?" + sanitized.substring(pos + 4);
     }
+
+    JsonDocument doc;
+    DeserializationError err = deserializeJson(doc, sanitized);
     if (err) {
         USBSerial.print("[BLE] JSON parse error: ");
         USBSerial.println(err.c_str());
@@ -267,6 +263,12 @@ void bluetooth_init() {
     // Request larger MTU so messages fit in fewer packets
     BLEDevice::setMTU(256);
 
+    // Enable "Just Works" bonding — stores keys in flash, no PIN required
+    // Survives power cycles so Gadgetbridge can auto-reconnect
+    BLESecurity *pSecurity = new BLESecurity();
+    pSecurity->setCapability(ESP_IO_CAP_NONE);
+    pSecurity->setAuthenticationMode(ESP_LE_AUTH_BOND);
+
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new MyServerCallbacks());
 
@@ -309,13 +311,31 @@ void bluetooth_update() {
     processRxBuffer();
 
     if (!deviceConnected && oldDeviceConnected) {
-        delay(500);
-        pServer->startAdvertising();
-        USBSerial.println("[BLE] Restarting advertising");
-        oldDeviceConnected = deviceConnected;
+        // Clean up after disconnect
+        rxBufLen = 0;
+        rxLine = "";
+        oldDeviceConnected = false;
+        USBSerial.println("[BLE] Cleaning up connection...");
     }
+
+    // Non-blocking delayed advertising restart
+    static uint32_t disconnectTime = 0;
+    if (!deviceConnected && !oldDeviceConnected && disconnectTime == 0) {
+        disconnectTime = millis();
+    }
+    if (disconnectTime > 0 && !deviceConnected && (millis() - disconnectTime > 500)) {
+        BLEDevice::startAdvertising();
+        USBSerial.println("[BLE] Restarting advertising");
+        disconnectTime = 0;
+        oldDeviceConnected = false;  // ready for next connect
+    }
+
     if (deviceConnected && !oldDeviceConnected) {
-        oldDeviceConnected = deviceConnected;
+        // Fresh connection — clear buffers
+        rxBufLen = 0;
+        rxLine = "";
+        disconnectTime = 0;
+        oldDeviceConnected = true;
     }
 }
 
