@@ -4,6 +4,7 @@
 #include <BLEUtils.h>
 #include <BLE2902.h>
 #include <ArduinoJson.h>
+#include "mbedtls/base64.h"
 #include "HWCDC.h"
 #include "rtc_clock.h"
 #include "notification_ui.h"
@@ -140,9 +141,46 @@ static void processRxBuffer() {
     }
 }
 
+// Decode base64 from atob() and convert Latin-1 to UTF-8
+static String decodeAtob(const String &b64) {
+    size_t olen;
+    unsigned char decoded[256];
+    int ret = mbedtls_base64_decode(decoded, sizeof(decoded), &olen,
+                                     (const unsigned char*)b64.c_str(), b64.length());
+    if (ret != 0) return "?";
+
+    // Convert Latin-1 to UTF-8, escaping JSON special chars
+    String result;
+    for (size_t i = 0; i < olen; i++) {
+        uint8_t c = decoded[i];
+        if (c < 0x20) continue;  // skip control chars
+        if (c == '"') { result += "\\\""; continue; }
+        if (c == '\\') { result += "\\\\"; continue; }
+        if (c < 0x80) {
+            result += (char)c;
+        } else {
+            // Latin-1 byte to 2-byte UTF-8
+            result += (char)(0xC0 | (c >> 6));
+            result += (char)(0x80 | (c & 0x3F));
+        }
+    }
+    return result;
+}
+
 static void handleGBMessage(const String &json) {
-    // Convert \xNN hex escapes to actual bytes (Gadgetbridge sends these for accented chars)
+    // Replace atob("...") with decoded UTF-8 string (Gadgetbridge base64-encodes non-ASCII text)
     String sanitized = json;
+    int atobPos = 0;
+    while ((atobPos = sanitized.indexOf("atob(\"", atobPos)) >= 0) {
+        int endPos = sanitized.indexOf("\")", atobPos + 6);
+        if (endPos < 0) break;
+        String b64 = sanitized.substring(atobPos + 6, endPos);
+        String decoded = decodeAtob(b64);
+        sanitized = sanitized.substring(0, atobPos) + "\"" + decoded + "\"" + sanitized.substring(endPos + 2);
+        atobPos += decoded.length() + 2;
+    }
+
+    // Convert \xNN hex escapes to actual bytes
     int pos = 0;
     while ((pos = sanitized.indexOf("\\x", pos)) >= 0) {
         if (pos + 3 < (int)sanitized.length()) {

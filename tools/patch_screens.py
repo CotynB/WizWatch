@@ -12,8 +12,9 @@ import re
 import os
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-SCREENS_CPP = os.path.join(SCRIPT_DIR, "..", "ui", "WizWatch", "src", "ui", "screens.cpp")  # Now .cpp after rename
-IMAGES_DIR = os.path.join(SCRIPT_DIR, "..", "ui", "WizWatch", "src", "ui", "images")
+UI_DIR = os.path.join(SCRIPT_DIR, "..", "ui", "WizWatch", "src", "ui")
+SCREENS_CPP = os.path.join(UI_DIR, "screens.cpp")  # Now .cpp after rename
+IMAGES_DIR = os.path.join(UI_DIR, "images")
 
 
 def discover_image_replacements():
@@ -44,8 +45,8 @@ def patch_screens_cpp(image_replacements):
 
     original = content
 
-    # Replace image references with SD card paths
-    for old, new in image_replacements.items():
+    # Replace image references with SD card paths (longest first to avoid partial matches)
+    for old, new in sorted(image_replacements.items(), key=lambda x: len(x[0]), reverse=True):
         content = content.replace(old, new)
 
     # Remove images.h include since we're loading from SD
@@ -63,6 +64,18 @@ def patch_screens_cpp(image_replacements):
     return False
 
 
+def remove_images_cpp():
+    """Remove images.cpp/.c so it doesn't conflict with the stub in ui_generated.cpp."""
+    removed = False
+    for ext in (".cpp", ".c"):
+        path = os.path.join(UI_DIR, f"images{ext}")
+        if os.path.exists(path):
+            os.rename(path, path + ".bak")
+            print(f"  Renamed {os.path.basename(path)} -> {os.path.basename(path)}.bak")
+            removed = True
+    return removed
+
+
 def main():
     print("Discovering images...")
     image_replacements = discover_image_replacements()
@@ -75,6 +88,10 @@ def main():
         print("  Patched successfully!")
     else:
         print("  No changes needed (already patched or no matches)")
+
+    print("\nRemoving images.cpp (conflicts with SD stub)...")
+    if not remove_images_cpp():
+        print("  Already removed")
 
     print("Done!")
 

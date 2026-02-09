@@ -11,19 +11,22 @@ typedef struct _objects_t {
     lv_obj_t *main;
     lv_obj_t *settings;
     lv_obj_t *settings_btt;
+    lv_obj_t *find_phone_btt;
     lv_obj_t *settings_btt_1;
     lv_obj_t *fond;
-    lv_obj_t *obj0;
     lv_obj_t *battery_full;
     lv_obj_t *battery_half_full;
     lv_obj_t *battery_empty;
     lv_obj_t *time_lbl;
     lv_obj_t *phone_connected_img;
     lv_obj_t *phone_not_connected_img;
+    lv_obj_t *settingslbl;
+    lv_obj_t *find_phone_lbl;
     lv_obj_t *fond_1;
     lv_obj_t *brightnessslider;
     lv_obj_t *brightness_lbl;
     lv_obj_t *brightness_lbl_1;
+    lv_obj_t *brightness_lbl_2;
 } objects_t;
 
 extern objects_t objects;

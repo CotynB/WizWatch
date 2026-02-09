@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Size: 16 px
  * Bpp: 4
- * Opts: --bpp 4 --size 16 --no-compress --font ..\..\..\..\..\Downloads\DotGothic16-Regular.ttf --range 0x20-0x7F,0xC0-0xFF,0x152-0x153 --format lvgl
+ * Opts: --bpp 4 --size 16 --no-compress --font ..\..\..\..\..\Downloads\DotGothic16-Regular.ttf --range 32-127,192-255,338-339 --format lvgl
  ******************************************************************************/
 
 #ifdef __has_include

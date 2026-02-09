@@ -21,12 +21,10 @@ def patch_ui_h():
     with open(UI_H, "r") as f:
         content = f.read()
 
-    # Replace the specific include line
-    original = '#if defined(EEZ_FOR_LVGL)\n#include <eez/flow/lvgl_api.h>\n#endif'
-    replacement = '#if defined(EEZ_FOR_LVGL)\n#include <eez-framework.h>\n#endif'
+    original = content
+    content = content.replace('#include <eez/flow/lvgl_api.h>', '#include <eez-framework.h>')
 
-    if original in content:
-        content = content.replace(original, replacement)
+    if content != original:
         with open(UI_H, "w") as f:
             f.write(content)
         return True

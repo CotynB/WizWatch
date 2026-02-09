@@ -1,6 +1,6 @@
 #include "images.h"
 
-const ext_img_desc_t images[8] = {
+const ext_img_desc_t images[10] = {
     { "fond", &img_fond },
     { "empty", &img_empty },
     { "half full", &img_half_full },
@@ -9,4 +9,6 @@ const ext_img_desc_t images[8] = {
     { "home icon", &img_home_icon },
     { "phoneConnected", &img_phone_connected },
     { "phoneNotConnected", &img_phone_not_connected },
+    { "fondVide", &img_fond_vide },
+    { "Leaf", &img_leaf },
 };

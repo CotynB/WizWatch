@@ -123,30 +123,44 @@ def upload_file(ser, filename, data):
 
     # Send data as hex-encoded text lines
     sent = 0
+    max_retries = 3
     while sent < size:
         end = min(sent + CHUNK_SIZE, size)
         chunk = data[sent:end]
         hex_str = chunk.hex()
-        ser.write(f"DATA:{hex_str}\n".encode())
-        ser.flush()
-        sent = end
 
-        # Wait for NEXT:<bytecount>
-        while True:
-            line = wait_for_line(ser, timeout=20)
-            if line is None:
-                print(f"\n  Timeout at {sent}/{size}")
-                return False
-            if line.startswith("NEXT:"):
-                decoded_count = int(line.split(":")[1])
-                if decoded_count != len(chunk):
-                    print(f"\n  Data mismatch! Sent {len(chunk)} bytes, ESP decoded {decoded_count}")
+        success = False
+        for attempt in range(max_retries):
+            ser.write(f"DATA:{hex_str}\n".encode())
+            ser.flush()
+
+            # Wait for NEXT:<bytecount>
+            while True:
+                line = wait_for_line(ser, timeout=30)
+                if line is None:
+                    if attempt < max_retries - 1:
+                        print(f"\n  Timeout at {sent}/{size}, retrying ({attempt+1}/{max_retries})...")
+                        time.sleep(1)
+                    break
+                if line.startswith("NEXT:"):
+                    decoded_count = int(line.split(":")[1])
+                    if decoded_count != len(chunk):
+                        print(f"\n  Data mismatch! Sent {len(chunk)} bytes, ESP decoded {decoded_count}")
+                        return False
+                    success = True
+                    break
+                if line.startswith("ERROR"):
+                    print(f"\n  < {line}")
                     return False
-                break
-            if line.startswith("ERROR"):
-                print(f"\n  < {line}")
-                return False
 
+            if success:
+                break
+
+        if not success:
+            print(f"\n  Failed at {sent}/{size} after {max_retries} retries")
+            return False
+
+        sent = end
         pct = sent * 100 // size
         print(f"\r  Sent {sent}/{size} ({pct}%)", end="", flush=True)
 
@@ -169,11 +183,13 @@ def upload_file(ser, filename, data):
 
 def main():
     if len(sys.argv) < 2:
-        print(f"Usage: python {sys.argv[0]} <COM_PORT>")
+        print(f"Usage: python {sys.argv[0]} <COM_PORT> [image1 image2 ...]")
         print(f"Example: python {sys.argv[0]} COM3")
+        print(f"         python {sys.argv[0]} COM3 fond leaf home_icon")
         sys.exit(1)
 
     port = sys.argv[1]
+    only_images = set(sys.argv[2:]) if len(sys.argv) > 2 else None
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
     print(f"Connecting to {port}...")
@@ -214,6 +230,14 @@ def main():
 
     # Discover and upload each image
     images = discover_images(script_dir)
+    if only_images:
+        images = [(src, name) for src, name in images if name.replace(".bin", "") in only_images]
+        if not images:
+            print(f"No matching images found for: {', '.join(only_images)}")
+            all_imgs = discover_images(script_dir)
+            print(f"Available: {', '.join(n.replace('.bin','') for _,n in all_imgs)}")
+            ser.close()
+            sys.exit(1)
     if not images:
         print("No images found to upload!")
         ser.close()

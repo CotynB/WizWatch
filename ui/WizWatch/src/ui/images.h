@@ -15,6 +15,8 @@ extern const lv_img_dsc_t img_setttings_icon;
 extern const lv_img_dsc_t img_home_icon;
 extern const lv_img_dsc_t img_phone_connected;
 extern const lv_img_dsc_t img_phone_not_connected;
+extern const lv_img_dsc_t img_fond_vide;
+extern const lv_img_dsc_t img_leaf;
 
 #ifndef EXT_IMG_DESC_T
 #define EXT_IMG_DESC_T
@@ -24,7 +26,7 @@ typedef struct _ext_img_desc_t {
 } ext_img_desc_t;
 #endif
 
-extern const ext_img_desc_t images[8];
+extern const ext_img_desc_t images[10];
 
 
 #ifdef __cplusplus

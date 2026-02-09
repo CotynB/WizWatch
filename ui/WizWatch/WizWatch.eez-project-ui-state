@@ -1,8 +1,9 @@
 {
   "navigation": {
-    "selectedUserPageObject": "[WizWatch.eez-project]:/userPages/0",
+    "selectedUserPageObject": "[WizWatch.eez-project]:/userPages/1",
     "selectedGlobalVariableObject": "[WizWatch.eez-project]:/variables/globalVariables/4",
-    "selectedBitmapObject": "[WizWatch.eez-project]:/bitmaps/7",
+    "selectedFontObject": "[WizWatch.eez-project]:/fonts/0",
+    "selectedBitmapObject": "[WizWatch.eez-project]:/bitmaps/4",
     "subnavigationSelectedItems": {
       "variables-tab/sub-navigation/selected-item": "Global"
     }
@@ -25,7 +26,7 @@
           },
           {
             "type": "border",
-            "selected": 2,
+            "selected": 1,
             "size": 240,
             "location": "right",
             "children": [
@@ -200,10 +201,20 @@
               "type": "tabset",
               "id": "EDITORS",
               "weight": 61.36853448275862,
-              "selected": 1,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
+                {
+                  "type": "tab",
+                  "id": "#b05d8471-a4e8-4b9d-b9db-2065a56ff424",
+                  "name": "AAAAAAAAAAAAAAAAAAAAA",
+                  "component": "editor",
+                  "config": {
+                    "objectPath": "[WizWatch.eez-project]:/fonts/0",
+                    "permanent": false
+                  },
+                  "icon": "material:font_download"
+                },
                 {
                   "type": "tab",
                   "id": "#687531da-e0c1-41b7-bd58-00a6a7f25eb9",
@@ -219,10 +230,10 @@
                 {
                   "type": "tab",
                   "id": "#22a1edbe-e60c-4259-a239-8117055444b6",
-                  "name": "Main",
+                  "name": "Settings",
                   "component": "editor",
                   "config": {
-                    "objectPath": "[WizWatch.eez-project]:/userPages/0",
+                    "objectPath": "[WizWatch.eez-project]:/userPages/1",
                     "permanent": false
                   },
                   "icon": "svg:page"
@@ -1012,7 +1023,9 @@
           "0": {},
           "1": {},
           "2": {},
-          "4": {},
+          "4": {
+            "$selected": true
+          },
           "5": {}
         }
       },
@@ -1034,9 +1047,7 @@
       "selection": {
         "0": {
           "0": {},
-          "2": {
-            "$selected": true
-          },
+          "2": {},
           "3": {}
         }
       },

@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-const ext_img_desc_t images[8] = {
+const ext_img_desc_t images[10] = {
     { "fond", nullptr },
     { "empty", nullptr },
     { "half_full", nullptr },
@@ -27,6 +27,8 @@ const ext_img_desc_t images[8] = {
     { "home_icon", nullptr },
     { "phone_connected", nullptr },
     { "phone_not_connected", nullptr },
+    { "fond_vide", nullptr },
+    { "leaf", nullptr },
 };
 
 #ifdef __cplusplus
