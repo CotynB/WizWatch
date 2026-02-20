@@ -19,6 +19,7 @@
 // EEZ Studio generated UI
 #include "ui/WizWatch/src/ui/ui.h"
 #include "ui/WizWatch/src/ui/vars.h"
+#include "ui/WizWatch/src/ui/screens.h"
 
 HWCDC USBSerial;
 
@@ -104,6 +105,17 @@ void setup() {
     lv_display_add_event_cb(disp, rounder_event_cb, LV_EVENT_INVALIDATE_AREA, NULL);
 
     ui_init();
+
+    // Wire Find Phone button — toggle ring on press/release
+    static bool findPhoneActive = false;
+    lv_obj_add_event_cb(objects.find_phone_btt, [](lv_event_t *e) {
+        lv_event_code_t code = lv_event_get_code(e);
+        bool *active = (bool *)lv_event_get_user_data(e);
+        if (code == LV_EVENT_CLICKED) {
+            *active = !*active;
+            bluetooth_find_phone(*active);
+        }
+    }, LV_EVENT_CLICKED, &findPhoneActive);
 
     // Initialize battery and brightness after UI/Flow system is ready
     battery_init();

@@ -64,3 +64,4 @@ void bluetooth_send_music_command(const char* cmd); // "play", "pause", "next", 
 void bluetooth_dismiss_notification(uint32_t id);
 void bluetooth_answer_call();
 void bluetooth_reject_call();
+void bluetooth_find_phone(bool start);

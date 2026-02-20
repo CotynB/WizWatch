@@ -299,10 +299,16 @@ static void handleGBMessage(const String &json) {
     }
 }
 
-// Send a GB() response back to the phone
+// Send JSON to Gadgetbridge (watch -> phone)
 static void sendGB(const String &json) {
     if (!deviceConnected) return;
-    String msg = "\x10" + json + "\n";
+    // Send empty line first to flush any pending REPL state (like real Bangle.js)
+    String flush = "\r\n";
+    pTxCharacteristic->setValue(flush.c_str());
+    pTxCharacteristic->notify();
+    delay(20);
+    // Send the actual JSON
+    String msg = json + "\r\n";
     pTxCharacteristic->setValue(msg.c_str());
     pTxCharacteristic->notify();
 }
@@ -482,4 +488,13 @@ void bluetooth_answer_call() {
 void bluetooth_reject_call() {
     sendGB("{\"t\":\"call\",\"n\":\"REJECT\"}");
     callInfo.active = false;
+}
+
+void bluetooth_find_phone(bool start) {
+    if (start) {
+        sendGB("{\"t\":\"findPhone\",\"n\":true}");
+    } else {
+        sendGB("{\"t\":\"findPhone\",\"n\":false}");
+    }
+    USBSerial.printf("[BLE] Find phone: %s\n", start ? "START" : "STOP");
 }
