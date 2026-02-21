@@ -353,13 +353,13 @@ void bluetooth_init() {
     BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(SERVICE_UUID);
     pAdvertising->setScanResponse(true);
-    // Advertising interval: 20-40ms (fast discovery, ~1mA more than default)
-    // Units are 0.625ms, so 0x20=20ms, 0x40=40ms
-    pAdvertising->setMinInterval(0x20);
-    pAdvertising->setMaxInterval(0x40);
-    // Preferred connection interval once connected
-    pAdvertising->setMinPreferred(0x06);
-    pAdvertising->setMaxPreferred(0x12);
+    // Advertising interval: 1000-2000ms (power-efficient discovery)
+    // Units are 0.625ms, so 0x640=1000ms, 0xC80=2000ms
+    pAdvertising->setMinInterval(0x640);
+    pAdvertising->setMaxInterval(0xC80);
+    // Preferred connection interval once connected: 30-50ms
+    pAdvertising->setMinPreferred(0x18);
+    pAdvertising->setMaxPreferred(0x28);
     BLEDevice::startAdvertising();
 
     USBSerial.println("[BLE] Ready as 'Bangle.js WizWatch'");

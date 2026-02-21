@@ -117,7 +117,7 @@ void create_screen_main() {
             // SettingsBTT
             lv_obj_t *obj = lv_imagebutton_create(parent_obj);
             objects.settings_btt = obj;
-            lv_obj_set_pos(obj, 258, 432);
+            lv_obj_set_pos(obj, 258, 426);
             lv_obj_set_size(obj, LV_SIZE_CONTENT, 46);
             lv_imagebutton_set_src(obj, LV_IMAGEBUTTON_STATE_RELEASED, NULL, "S:setttings_icon.bin", NULL);
             lv_obj_add_event_cb(obj, event_handler_cb_main_settings_btt, LV_EVENT_ALL, flowState);
@@ -134,7 +134,7 @@ void create_screen_main() {
             // PhoneNotConnectedIMG
             lv_obj_t *obj = lv_image_create(parent_obj);
             objects.phone_not_connected_img = obj;
-            lv_obj_set_pos(obj, 352, 216);
+            lv_obj_set_pos(obj, 356, 216);
             lv_obj_set_size(obj, 36, 54);
             lv_image_set_src(obj, "S:phone_not_connected.bin");
         }
@@ -142,7 +142,7 @@ void create_screen_main() {
             // Settingslbl
             lv_obj_t *obj = lv_label_create(parent_obj);
             objects.settingslbl = obj;
-            lv_obj_set_pos(obj, 240, 478);
+            lv_obj_set_pos(obj, 240, 473);
             lv_obj_set_size(obj, 81, 21);
             lv_obj_set_style_text_font(obj, &ui_font_dot_gothic16_14, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_text_color(obj, lv_color_hex(0xffb4e898), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -153,7 +153,7 @@ void create_screen_main() {
             // FindPhoneBTT
             lv_obj_t *obj = lv_imagebutton_create(parent_obj);
             objects.find_phone_btt = obj;
-            lv_obj_set_pos(obj, 172, 433);
+            lv_obj_set_pos(obj, 173, 426);
             lv_obj_set_size(obj, LV_SIZE_CONTENT, 45);
             lv_imagebutton_set_src(obj, LV_IMAGEBUTTON_STATE_RELEASED, NULL, "S:leaf.bin", NULL);
             lv_obj_add_event_cb(obj, event_handler_cb_main_find_phone_btt, LV_EVENT_ALL, flowState);
@@ -162,12 +162,31 @@ void create_screen_main() {
             // FindPhoneLBL
             lv_obj_t *obj = lv_label_create(parent_obj);
             objects.find_phone_lbl = obj;
-            lv_obj_set_pos(obj, 155, 478);
+            lv_obj_set_pos(obj, 155, 473);
             lv_obj_set_size(obj, 81, 21);
             lv_obj_set_style_text_font(obj, &ui_font_dot_gothic16_14, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_text_color(obj, lv_color_hex(0xffb4e898), LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_label_set_text(obj, "Trouver Tel");
+        }
+        {
+            // batteryPercentLBL
+            lv_obj_t *obj = lv_label_create(parent_obj);
+            objects.battery_percent_lbl = obj;
+            lv_obj_set_pos(obj, 4, 201);
+            lv_obj_set_size(obj, 75, 23);
+            lv_obj_set_style_text_font(obj, &ui_font_dot_gothic16_16, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_color(obj, lv_color_hex(0xffb4e898), LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_label_set_text(obj, "");
+        }
+        {
+            // PlugedIMG
+            lv_obj_t *obj = lv_image_create(parent_obj);
+            objects.pluged_img = obj;
+            lv_obj_set_pos(obj, 356, 179);
+            lv_obj_set_size(obj, 36, 54);
+            lv_image_set_src(obj, "S:plugged.bin");
         }
     }
     
@@ -188,6 +207,8 @@ void delete_screen_main() {
     objects.settingslbl = 0;
     objects.find_phone_btt = 0;
     objects.find_phone_lbl = 0;
+    objects.battery_percent_lbl = 0;
+    objects.pluged_img = 0;
     deletePageFlowState(0);
 }
 
@@ -250,6 +271,25 @@ void tick_screen_main() {
             tick_value_change_obj = objects.phone_not_connected_img;
             if (new_val) lv_obj_add_flag(objects.phone_not_connected_img, LV_OBJ_FLAG_HIDDEN);
             else lv_obj_clear_flag(objects.phone_not_connected_img, LV_OBJ_FLAG_HIDDEN);
+            tick_value_change_obj = NULL;
+        }
+    }
+    {
+        const char *new_val = evalTextProperty(flowState, 12, 3, "Failed to evaluate Text in Label widget");
+        const char *cur_val = lv_label_get_text(objects.battery_percent_lbl);
+        if (strcmp(new_val, cur_val) != 0) {
+            tick_value_change_obj = objects.battery_percent_lbl;
+            lv_label_set_text(objects.battery_percent_lbl, new_val);
+            tick_value_change_obj = NULL;
+        }
+    }
+    {
+        bool new_val = evalBooleanProperty(flowState, 13, 3, "Failed to evaluate Hidden flag");
+        bool cur_val = lv_obj_has_flag(objects.pluged_img, LV_OBJ_FLAG_HIDDEN);
+        if (new_val != cur_val) {
+            tick_value_change_obj = objects.pluged_img;
+            if (new_val) lv_obj_add_flag(objects.pluged_img, LV_OBJ_FLAG_HIDDEN);
+            else lv_obj_clear_flag(objects.pluged_img, LV_OBJ_FLAG_HIDDEN);
             tick_value_change_obj = NULL;
         }
     }
@@ -371,7 +411,7 @@ void tick_screen_settings() {
 
 
 static const char *screen_names[] = { "Main", "Settings" };
-static const char *object_names[] = { "main", "settings", "settings_btt", "find_phone_btt", "settings_btt_1", "fond", "battery_full", "battery_half_full", "battery_empty", "time_lbl", "phone_connected_img", "phone_not_connected_img", "settingslbl", "find_phone_lbl", "fond_1", "brightnessslider", "brightness_lbl", "brightness_lbl_1", "brightness_lbl_2" };
+static const char *object_names[] = { "main", "settings", "settings_btt", "find_phone_btt", "settings_btt_1", "fond", "battery_full", "battery_half_full", "battery_empty", "time_lbl", "phone_connected_img", "phone_not_connected_img", "settingslbl", "find_phone_lbl", "battery_percent_lbl", "pluged_img", "fond_1", "brightnessslider", "brightness_lbl", "brightness_lbl_1", "brightness_lbl_2" };
 
 
 typedef void (*create_screen_func_t)();

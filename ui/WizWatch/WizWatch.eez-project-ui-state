@@ -1,9 +1,9 @@
 {
   "navigation": {
-    "selectedUserPageObject": "[WizWatch.eez-project]:/userPages/1",
-    "selectedGlobalVariableObject": "[WizWatch.eez-project]:/variables/globalVariables/4",
+    "selectedUserPageObject": "[WizWatch.eez-project]:/userPages/0",
+    "selectedGlobalVariableObject": "[WizWatch.eez-project]:/variables/globalVariables/5",
     "selectedFontObject": "[WizWatch.eez-project]:/fonts/0",
-    "selectedBitmapObject": "[WizWatch.eez-project]:/bitmaps/4",
+    "selectedBitmapObject": "[WizWatch.eez-project]:/bitmaps/9",
     "subnavigationSelectedItems": {
       "variables-tab/sub-navigation/selected-item": "Global"
     }
@@ -26,7 +26,7 @@
           },
           {
             "type": "border",
-            "selected": 1,
+            "selected": 2,
             "size": 240,
             "location": "right",
             "children": [
@@ -201,20 +201,10 @@
               "type": "tabset",
               "id": "EDITORS",
               "weight": 61.36853448275862,
+              "selected": 1,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
-                {
-                  "type": "tab",
-                  "id": "#b05d8471-a4e8-4b9d-b9db-2065a56ff424",
-                  "name": "AAAAAAAAAAAAAAAAAAAAA",
-                  "component": "editor",
-                  "config": {
-                    "objectPath": "[WizWatch.eez-project]:/fonts/0",
-                    "permanent": false
-                  },
-                  "icon": "material:font_download"
-                },
                 {
                   "type": "tab",
                   "id": "#687531da-e0c1-41b7-bd58-00a6a7f25eb9",
@@ -230,15 +220,16 @@
                 {
                   "type": "tab",
                   "id": "#22a1edbe-e60c-4259-a239-8117055444b6",
-                  "name": "Settings",
+                  "name": "Main",
                   "component": "editor",
                   "config": {
-                    "objectPath": "[WizWatch.eez-project]:/userPages/1",
+                    "objectPath": "[WizWatch.eez-project]:/userPages/0",
                     "permanent": false
                   },
                   "icon": "svg:page"
                 }
-              ]
+              ],
+              "active": true
             },
             {
               "type": "row",
@@ -258,8 +249,7 @@
                       "enableClose": false,
                       "icon": "svg:properties"
                     }
-                  ],
-                  "active": true
+                  ]
                 },
                 {
                   "type": "tabset",
@@ -1023,18 +1013,16 @@
           "0": {},
           "1": {},
           "2": {},
-          "4": {
-            "$selected": true
-          },
+          "4": {},
           "5": {}
         }
       },
       "transform": {
         "translate": {
-          "x": -186,
-          "y": -251
+          "x": -75.69999999999999,
+          "y": -191.39999999999998
         },
-        "scale": 1.25
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1047,7 +1035,9 @@
       "selection": {
         "0": {
           "0": {},
-          "2": {},
+          "2": {
+            "$selected": true
+          },
           "3": {}
         }
       },
@@ -1125,6 +1115,6 @@
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
-  "flowZoom": 1.25,
+  "flowZoom": 1,
   "implementationLanguage": "C"
 }

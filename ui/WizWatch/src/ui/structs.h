@@ -9,6 +9,7 @@
 
 #if defined(EEZ_FOR_LVGL)
 
+#include <eez-framework.h>
 #include <eez/flow/flow.h>
 #include <stdint.h>
 #include <stdbool.h>

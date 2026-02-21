@@ -88,3 +88,16 @@ bool sd_card_init() {
   USBSerial.println("SD card + LVGL FS driver initialized");
   return true;
 }
+
+void sd_card_sleep() {
+  SD_MMC.end();
+}
+
+bool sd_card_wake() {
+  SD_MMC.setPins(SDMMC_CLK, SDMMC_CMD, SDMMC_DATA);
+  if (!SD_MMC.begin("/sdcard", true)) {
+    USBSerial.println("SD card remount failed");
+    return false;
+  }
+  return true;
+}

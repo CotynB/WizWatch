@@ -5,6 +5,7 @@
 #include "lv_conf.h"
 #include "HWCDC.h"
 #include <WiFi.h>
+#include <esp_sleep.h>
 
 #include "display.h"
 #include "touch.h"
@@ -46,8 +47,8 @@ void setup() {
   DEV_DEVICE_INIT();
 #endif
 
-  USBSerial.begin(115200);
-  USBSerial.println("WizWatch starting...");
+  // USBSerial.begin(115200);  // Commented out for power saving
+  // USBSerial.println("WizWatch starting...");
 
   // Disable WiFi for power saving (keep BLE for phone pairing)
   WiFi.mode(WIFI_OFF);
@@ -141,21 +142,37 @@ void loop() {
   // Always check power button (wake source)
   power_check_button();
 
-  // Skip most processing if sleeping
+  // ===== SLEEP MODE =====
   if (power_is_sleeping()) {
+    if (power_use_light_sleep()) {
+      // True light sleep — CPU halts, ~0.8-2mA
+      esp_light_sleep_start();
+      delay(5);  // Let BLE/FreeRTOS tasks process after wakeup
+
+      // If woke from GPIO (touch), set flag since edge ISR misses during light sleep
+      if (esp_sleep_get_wakeup_cause() == ESP_SLEEP_WAKEUP_GPIO) {
+        FT3168->IIC_Interrupt_Flag = true;
+      }
+    } else {
+      // Connected sleep — CPU at 40MHz, BLE stays active
+      delay(100);
+    }
+
+    // Check wake sources
     if (touch_has_activity()) {
       notification_ui_set_sleep_bg(false);
       power_wake();
     } else if (bluetooth_has_pending_data()) {
       notification_ui_set_sleep_bg(true);
       power_wake();
-    } else {
-      delay(100);
-      return;
     }
+    return;
   }
 
   // ===== AWAKE MODE =====
+
+  // Scale CPU down when idle, up on touch (before LVGL processes)
+  power_optimize_idle();
 
   lv_task_handler();
 
@@ -179,12 +196,17 @@ void loop() {
   bluetooth_update();  // Handle BLE connections
   power_check_inactivity();  // Auto-sleep after 30s of no touch
 
-  // Update battery less frequently (every 5 seconds instead of every loop)
-  if (now - lastBatteryUpdate >= 50000) {
+  // Update battery every 5 seconds
+  if (now - lastBatteryUpdate >= 5000) {
     battery_update();
     lastBatteryUpdate = now;
   }
 
-  // Minimal delay for responsiveness
-  delay(1);
+  // Use longer delay when LVGL is idle (no UI changes) to reduce CPU wake-ups
+  uint32_t idleTime = lv_display_get_inactive_time(disp);
+  if (idleTime > 1000) {
+    delay(33);  // ~30 FPS idle polling
+  } else {
+    delay(1);   // Full speed during UI activity
+  }
 }

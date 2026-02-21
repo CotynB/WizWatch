@@ -22,6 +22,8 @@ typedef struct _objects_t {
     lv_obj_t *phone_not_connected_img;
     lv_obj_t *settingslbl;
     lv_obj_t *find_phone_lbl;
+    lv_obj_t *battery_percent_lbl;
+    lv_obj_t *pluged_img;
     lv_obj_t *fond_1;
     lv_obj_t *brightnessslider;
     lv_obj_t *brightness_lbl;

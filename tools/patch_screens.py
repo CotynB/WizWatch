@@ -70,7 +70,10 @@ def remove_images_cpp():
     for ext in (".cpp", ".c"):
         path = os.path.join(UI_DIR, f"images{ext}")
         if os.path.exists(path):
-            os.rename(path, path + ".bak")
+            if os.path.exists(path + ".bak"):
+                os.remove(path)
+            else:
+                os.rename(path, path + ".bak")
             print(f"  Renamed {os.path.basename(path)} -> {os.path.basename(path)}.bak")
             removed = True
     return removed
