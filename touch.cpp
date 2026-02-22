@@ -53,7 +53,6 @@ void touch_init() {
   }
 
   if (retries > 0) {
-    USBSerial.println("FT3168 OK");
     FT3168->IIC_Write_Device_State(FT3168->Arduino_IIC_Touch::Device::TOUCH_POWER_MODE,
                                    FT3168->Arduino_IIC_Touch::Device_Mode::TOUCH_POWER_MONITOR);
   } else {

@@ -15,11 +15,7 @@ void brightness_init() {
     // Safety check - if 0, set to 50% (medium brightness)
     if (initialBrightness == 0) {
         initialBrightness = 50;
-        USBSerial.println("Brightness was 0, setting to 50%");
     }
-
-    USBSerial.print("Brightness init - EEZ value: ");
-    USBSerial.println(initialBrightness);
 
     brightness_set(initialBrightness);
     lastBrightness = initialBrightness;

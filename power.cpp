@@ -18,13 +18,17 @@ static uint32_t lastActivityTime = 0;
 static bool lightSleepConfigured = false;
 static bool cpuSlowed = false;
 
+#ifdef POWER_DEBUG
+static PowerLogEntry _plog[POWER_LOG_CAPACITY];
+static uint16_t _plog_head  = 0;
+static uint16_t _plog_count = 0;
+#endif
+
 void power_init() {
     if (!PMU.begin(Wire, AXP2101_SLAVE_ADDRESS, IIC_SDA, IIC_SCL)) {
         USBSerial.println("PMU init failed!");
         return;
     }
-
-    USBSerial.println("PMU initialized");
 
     // Enable ADC for battery monitoring
     PMU.enableBattDetection();
@@ -38,14 +42,12 @@ void power_init() {
     PMU.disableIRQ(XPOWERS_AXP2101_ALL_IRQ);
     PMU.clearIrqStatus();
     PMU.enableIRQ(XPOWERS_AXP2101_PKEY_SHORT_IRQ);
-    USBSerial.println("Power button enabled");
     lastActivityTime = millis();
 }
 
 void power_check_button() {
     if (PMU.getIrqStatus()) {
         if (PMU.isPekeyShortPressIrq()) {
-            USBSerial.println("Power button pressed!");
             if (sleeping) {
                 notification_ui_set_sleep_bg(false);
                 power_wake();
@@ -71,7 +73,6 @@ static void configure_light_sleep() {
 }
 
 void power_sleep() {
-    USBSerial.println("Going to sleep");
     sleeping = true;
 
     // Display off
@@ -93,11 +94,10 @@ void power_sleep() {
     // If BLE connected: we'll use 40MHz + delay (BLE needs active CPU)
     if (!bluetooth_is_connected()) {
         // Light sleep mode - CPU will halt in the main loop
-        USBSerial.println("Sleep mode: light sleep (BLE disconnected)");
-    } else {
-        // Connected sleep - keep CPU running slowly for BLE
         setCpuFrequencyMhz(40);
-        USBSerial.println("Sleep mode: low-power poll (BLE connected)");
+    } else {
+        // Connected sleep - BLE requires minimum 80MHz to maintain connection
+        setCpuFrequencyMhz(80);
     }
 }
 
@@ -140,7 +140,6 @@ void power_reset_inactivity() {
 
 void power_check_inactivity() {
     if (!sleeping && (millis() - lastActivityTime >= INACTIVITY_TIMEOUT_MS)) {
-        USBSerial.println("Inactivity timeout - going to sleep");
         power_sleep();
     }
 }
@@ -159,4 +158,47 @@ void power_optimize_idle() {
 
 bool power_use_light_sleep() {
     return sleeping && !bluetooth_is_connected();
+}
+
+void power_log_sample() {
+#ifdef POWER_DEBUG
+    PowerLogEntry &e = _plog[_plog_head];
+    e.ts      = millis();
+    e.voltage = PMU.getBattVoltage();
+    e.percent = PMU.isBatteryConnect() ? PMU.getBatteryPercent() : -1;
+    e.cpu_mhz = (uint8_t)(getCpuFrequencyMhz() / 10);
+    e.flags   = 0;
+    if (sleeping)                              e.flags |= PFLAG_SLEEPING;
+    if (bluetooth_is_connected())              e.flags |= PFLAG_BLE;
+    if (PMU.isVbusIn())                        e.flags |= PFLAG_VBUS;
+    if (sleeping && !bluetooth_is_connected()) e.flags |= PFLAG_LIGHTSLEEP;
+    if (PMU.isCharging())                      e.flags |= PFLAG_CHARGING;
+
+    _plog_head = (_plog_head + 1) % POWER_LOG_CAPACITY;
+    if (_plog_count < POWER_LOG_CAPACITY) _plog_count++;
+#endif
+}
+
+void power_log_flush() {
+#ifdef POWER_DEBUG
+    if (!USBSerial || _plog_count == 0) return;
+
+    uint16_t start = (_plog_count < POWER_LOG_CAPACITY) ? 0 : _plog_head;
+
+    USBSerial.printf("\n[PWR] %u samples — ts_ms,mV,pct,MHz,stage\n", _plog_count);
+    for (uint16_t i = 0; i < _plog_count; i++) {
+        const PowerLogEntry &e = _plog[(start + i) % POWER_LOG_CAPACITY];
+        const char *stage =
+            (e.flags & PFLAG_LIGHTSLEEP) ? "light_sleep" :
+            (e.flags & PFLAG_SLEEPING)   ? "ble_sleep"   : "awake";
+        USBSerial.printf("%lu,%.0f,%d,%d,%s%s\n",
+            e.ts, e.voltage,
+            e.percent, (int)e.cpu_mhz * 10, stage,
+            (e.flags & PFLAG_CHARGING) ? ",chg" : "");
+    }
+    USBSerial.println("[PWR END]");
+
+    _plog_count = 0;
+    _plog_head  = 0;
+#endif
 }

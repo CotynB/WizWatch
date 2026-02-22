@@ -47,6 +47,7 @@ static String rxLine = "";
 static bt_notification_t notifications[BT_MAX_NOTIFICATIONS];
 static int notificationCount = 0;
 static int notificationHead = 0; // circular index
+static bool notifyPending = false; // set when notify arrives during sleep
 static bt_music_t musicInfo;
 static bt_weather_t weatherInfo;
 static bt_call_t callInfo;
@@ -59,12 +60,10 @@ static void sendGB(const String &json);
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
         deviceConnected = true;
-        USBSerial.println("[BLE] Phone connected!");
     };
 
     void onDisconnect(BLEServer* pServer) {
         deviceConnected = false;
-        USBSerial.println("[BLE] Phone disconnected");
     }
 };
 
@@ -105,9 +104,6 @@ static void processRxBuffer() {
                 rxLine = rxLine.substring(1);
             }
             if (rxLine.length() > 0) {
-                USBSerial.print("[BLE] Recv: ");
-                USBSerial.println(rxLine);
-
                 if (rxLine.startsWith("GB(") && rxLine.endsWith(")")) {
                     String json = rxLine.substring(3, rxLine.length() - 1);
                     handleGBMessage(json);
@@ -129,7 +125,6 @@ static void processRxBuffer() {
                         }
 
                         long localTs = ts + (long)(tz * 3600);
-                        USBSerial.printf("[BLE] Time sync: %ld (UTC%+.1f)\n", ts, tz);
                         rtc_set_from_epoch(localTs);
                     }
                 }
@@ -203,9 +198,6 @@ static void handleGBMessage(const String &json) {
     const char* type = doc["t"];
     if (!type) return;
 
-    USBSerial.print("[BLE] Message type: ");
-    USBSerial.println(type);
-
     // ---- Notification ----
     if (strcmp(type, "notify") == 0) {
         bt_notification_t &notif = notifications[notificationHead];
@@ -218,12 +210,13 @@ static void handleGBMessage(const String &json) {
         notificationHead = (notificationHead + 1) % BT_MAX_NOTIFICATIONS;
         if (notificationCount < BT_MAX_NOTIFICATIONS) notificationCount++;
 
-        USBSerial.printf("[BLE] Notification from %s: %s\n",
-            notif.src.c_str(), notif.title.c_str());
-
-        // Show pop-up on watch display and keep screen on
-        power_reset_inactivity();
-        notification_ui_show(notif.src.c_str(), notif.title.c_str(), notif.body.c_str());
+        if (power_is_sleeping()) {
+            // Defer UI until after wake — flag checked in sleep loop
+            notifyPending = true;
+        } else {
+            power_reset_inactivity();
+            notification_ui_show(notif.src.c_str(), notif.title.c_str(), notif.body.c_str());
+        }
     }
     // ---- Dismiss notification ----
     else if (strcmp(type, "notify-") == 0) {
@@ -234,7 +227,6 @@ static void handleGBMessage(const String &json) {
                 notifications[i].src = "";
                 notifications[i].title = "";
                 notifications[i].body = "";
-                USBSerial.printf("[BLE] Dismissed notification %d\n", id);
                 break;
             }
         }
@@ -246,20 +238,16 @@ static void handleGBMessage(const String &json) {
         musicInfo.track    = doc["track"] | "";
         musicInfo.duration = doc["dur"] | 0;
         musicInfo.position = doc["c"] | 0;
-        USBSerial.printf("[BLE] Music: %s - %s\n",
-            musicInfo.artist.c_str(), musicInfo.track.c_str());
     }
     // ---- Music state ----
     else if (strcmp(type, "musicstate") == 0) {
         const char* state = doc["state"] | "pause";
         musicInfo.playing = (strcmp(state, "play") == 0);
-        USBSerial.printf("[BLE] Music %s\n", musicInfo.playing ? "playing" : "paused");
     }
     // ---- Time sync ----
     else if (strcmp(type, "setTime") == 0) {
         long ts = doc["ts"] | 0;
         if (ts > 0) {
-            USBSerial.printf("[BLE] Time sync: %ld\n", ts);
             // TODO: update RTC with timestamp
         }
     }
@@ -270,8 +258,6 @@ static void handleGBMessage(const String &json) {
         weatherInfo.txt      = doc["txt"] | "";
         weatherInfo.code     = doc["code"] | 0;
         weatherInfo.valid    = true;
-        USBSerial.printf("[BLE] Weather: %d°C %s\n",
-            weatherInfo.temp, weatherInfo.txt.c_str());
     }
     // ---- Incoming call ----
     else if (strcmp(type, "call") == 0) {
@@ -280,22 +266,14 @@ static void handleGBMessage(const String &json) {
         callInfo.number = doc["number"] | "";
         callInfo.active = (callInfo.cmd == "incoming" || callInfo.cmd == "start");
         if (callInfo.active) power_reset_inactivity();
-        USBSerial.printf("[BLE] Call: %s from %s\n",
-            callInfo.cmd.c_str(), callInfo.name.c_str());
     }
     // ---- Find my watch ----
     else if (strcmp(type, "find") == 0) {
-        bool on = doc["n"] | false;
-        USBSerial.printf("[BLE] Find: %s\n", on ? "ON" : "OFF");
         // TODO: trigger vibration motor or screen flash
     }
     // ---- GPS query ----
     else if (strcmp(type, "is_gps_active") == 0) {
         sendGB("{\"t\":\"gps_power\",\"status\":false}");
-    }
-    else {
-        USBSerial.print("[BLE] Unknown type: ");
-        USBSerial.println(type);
     }
 }
 
@@ -314,8 +292,6 @@ static void sendGB(const String &json) {
 }
 
 void bluetooth_init() {
-    USBSerial.println("[BLE] Initializing Bluetooth...");
-
     // Name MUST start with "Bangle.js" for Gadgetbridge to recognize it
     BLEDevice::init("Bangle.js WizWatch");
 
@@ -361,8 +337,6 @@ void bluetooth_init() {
     pAdvertising->setMinPreferred(0x18);
     pAdvertising->setMaxPreferred(0x28);
     BLEDevice::startAdvertising();
-
-    USBSerial.println("[BLE] Ready as 'Bangle.js WizWatch'");
 }
 
 void bluetooth_update() {
@@ -375,7 +349,6 @@ void bluetooth_update() {
         rxLine = "";
         oldDeviceConnected = false;
         eez::flow::setGlobalVariable(FLOW_GLOBAL_VARIABLE_PHONE_CONNECTED_VAR, eez::Value(1));
-        USBSerial.println("[BLE] Cleaning up connection...");
     }
 
     // Non-blocking delayed advertising restart
@@ -385,7 +358,6 @@ void bluetooth_update() {
     }
     if (disconnectTime > 0 && !deviceConnected && (millis() - disconnectTime > 500)) {
         BLEDevice::startAdvertising();
-        USBSerial.println("[BLE] Restarting advertising");
         disconnectTime = 0;
         oldDeviceConnected = false;  // ready for next connect
     }
@@ -414,15 +386,21 @@ bool bluetooth_has_pending_data() {
     return rxBufLen > 0;
 }
 
+bool bluetooth_consume_notification() {
+    if (notifyPending) { notifyPending = false; return true; }
+    return false;
+}
+
 void bluetooth_sleep() {
     BLEDevice::getAdvertising()->stop();
-    USBSerial.println("[BLE] Advertising stopped (sleep)");
 }
 
 void bluetooth_wake() {
     if (!deviceConnected) {
-        BLEDevice::getAdvertising()->start();
-        USBSerial.println("[BLE] Advertising resumed");
+        BLEAdvertising *pAdv = BLEDevice::getAdvertising();
+        pAdv->setMinInterval(0x20);  // 20ms — fast reconnection
+        pAdv->setMaxInterval(0x40);  // 40ms
+        pAdv->start();
     }
 }
 
@@ -459,7 +437,6 @@ void bluetooth_send_music_command(const char* cmd) {
     String json;
     serializeJson(doc, json);
     sendGB(json);
-    USBSerial.printf("[BLE] Music cmd: %s\n", cmd);
 }
 
 void bluetooth_dismiss_notification(uint32_t id) {
@@ -496,5 +473,4 @@ void bluetooth_find_phone(bool start) {
     } else {
         sendGB("{\"t\":\"findPhone\",\"n\":false}");
     }
-    USBSerial.printf("[BLE] Find phone: %s\n", start ? "START" : "STOP");
 }

@@ -58,9 +58,6 @@ void rtc_set_from_epoch(long epoch) {
     t->tm_sec
   );
 
-  USBSerial.printf("[RTC] Set to %04d-%02d-%02d %02d:%02d:%02d\n",
-    t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
-    t->tm_hour, t->tm_min, t->tm_sec);
 
   rtc_update_display();
 }

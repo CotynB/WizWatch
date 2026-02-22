@@ -47,12 +47,11 @@ void setup() {
   DEV_DEVICE_INIT();
 #endif
 
-  // USBSerial.begin(115200);  // Commented out for power saving
+  USBSerial.begin(115200);  // Commented out for power saving
   // USBSerial.println("WizWatch starting...");
 
   // Disable WiFi for power saving (keep BLE for phone pairing)
   WiFi.mode(WIFI_OFF);
-  USBSerial.println("WiFi disabled for power saving");
 
   display_init();
   touch_init();
@@ -132,7 +131,6 @@ void setup() {
   // Initialize Bluetooth last (after UI is ready)
   bluetooth_init();
 
-  USBSerial.println("Ready");
 }
 
 void loop() {
@@ -158,13 +156,29 @@ void loop() {
       delay(100);
     }
 
+    // Sample every ~1s during all sleep modes
+    static uint32_t lastSleepSample = 0;
+    if (millis() - lastSleepSample >= 1000) {
+      power_log_sample();
+      lastSleepSample = millis();
+    }
+
+    // Process BLE data silently — only wake for real notifications
+    if (bluetooth_has_pending_data()) {
+      bluetooth_update();
+    }
+
     // Check wake sources
     if (touch_has_activity()) {
       notification_ui_set_sleep_bg(false);
       power_wake();
-    } else if (bluetooth_has_pending_data()) {
+    } else if (bluetooth_consume_notification()) {
+      const bt_notification_t *notif = bluetooth_get_latest_notification();
       notification_ui_set_sleep_bg(true);
       power_wake();
+      if (notif) {
+        notification_ui_show(notif->src.c_str(), notif->title.c_str(), notif->body.c_str());
+      }
     }
     return;
   }
@@ -196,11 +210,31 @@ void loop() {
   bluetooth_update();  // Handle BLE connections
   power_check_inactivity();  // Auto-sleep after 30s of no touch
 
-  // Update battery every 5 seconds
+  // Update battery every 5 seconds + low battery shutdown
   if (now - lastBatteryUpdate >= 5000) {
     battery_update();
     lastBatteryUpdate = now;
+
+    if (PMU.isBatteryConnect() && PMU.getBatteryPercent() <= 5) {
+      USBSerial.println("Low battery — shutting down");
+      sd_card_sleep();
+      bluetooth_sleep();
+      power_sleep();
+    }
   }
+
+#ifdef POWER_DEBUG
+  static uint32_t lastSample = 0;
+  static uint32_t lastFlush  = 0;
+  if (now - lastSample >= 1000) {
+    power_log_sample();
+    lastSample = now;
+  }
+  if (now - lastFlush >= 5000) {
+    power_log_flush();
+    lastFlush = now;
+  }
+#endif
 
   // Use longer delay when LVGL is idle (no UI changes) to reduce CPU wake-ups
   uint32_t idleTime = lv_display_get_inactive_time(disp);

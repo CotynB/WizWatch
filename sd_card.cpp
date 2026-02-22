@@ -72,10 +72,6 @@ bool sd_card_init() {
     return false;
   }
 
-  USBSerial.print("SD card size: ");
-  USBSerial.print((uint32_t)(SD_MMC.cardSize() / (1024 * 1024)));
-  USBSerial.println(" MB");
-
   lv_fs_drv_init(&sd_drv);
   sd_drv.letter = 'S';
   sd_drv.open_cb = sd_open_cb;
@@ -84,8 +80,6 @@ bool sd_card_init() {
   sd_drv.seek_cb = sd_seek_cb;
   sd_drv.tell_cb = sd_tell_cb;
   lv_fs_drv_register(&sd_drv);
-
-  USBSerial.println("SD card + LVGL FS driver initialized");
   return true;
 }
 
