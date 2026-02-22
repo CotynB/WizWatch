@@ -109,10 +109,10 @@ void power_wake() {
     // Restore full CPU speed
     setCpuFrequencyMhz(240);
 
-    // Display on
+    // Display on — clear stale controller RAM before enabling brightness
     if (gfx) {
         gfx->displayOn();
-        delay(50);
+        gfx->fillScreen(0x0000);  // overwrite old frame with black
     }
     display_set_brightness(51);
     delay(50);
