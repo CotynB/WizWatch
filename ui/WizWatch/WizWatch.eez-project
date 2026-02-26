@@ -522,7 +522,7 @@
               "objID": "b03c717f-78ba-4302-d054-d0beaea7c4dd",
               "type": "LVGLImgbuttonWidget",
               "left": 258,
-              "top": 426,
+              "top": 428,
               "width": 45,
               "height": 46,
               "customInputs": [],
@@ -665,7 +665,7 @@
               "objID": "e1488ff0-0be1-4f7b-f42c-221aab0b6a27",
               "type": "LVGLLabelWidget",
               "left": 240,
-              "top": 473,
+              "top": 475,
               "width": 81,
               "height": 21,
               "customInputs": [],
@@ -716,7 +716,7 @@
             {
               "objID": "14667984-e779-488b-b5bd-702934bc1379",
               "type": "LVGLImgbuttonWidget",
-              "left": 173,
+              "left": 177,
               "top": 426,
               "width": 45,
               "height": 45,
@@ -765,8 +765,8 @@
             {
               "objID": "fde93f49-b7db-45e0-db79-cbaa5ab00037",
               "type": "LVGLLabelWidget",
-              "left": 155,
-              "top": 473,
+              "left": 159,
+              "top": 474,
               "width": 81,
               "height": 21,
               "customInputs": [],
@@ -779,7 +779,7 @@
               },
               "timeline": [],
               "eventHandlers": [],
-              "identifier": "FindPhoneLBL",
+              "identifier": "PlantesLBL",
               "leftUnit": "px",
               "topUnit": "px",
               "widthUnit": "px",
@@ -809,7 +809,7 @@
               },
               "group": "",
               "groupIndex": 0,
-              "text": "Trouver Tel",
+              "text": "Plantes",
               "textType": "literal",
               "longMode": "WRAP",
               "recolor": false
@@ -912,6 +912,55 @@
               "zoom": 200,
               "angle": 0,
               "innerAlign": "CENTER"
+            },
+            {
+              "objID": "68d83ab3-b59c-4839-9bf2-7305a0e0729e",
+              "type": "LVGLImgbuttonWidget",
+              "left": 352,
+              "top": 221,
+              "width": 40,
+              "height": 45,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "c1b9f28e-5e5d-407d-b74c-441fd39cb8f8",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [
+                {
+                  "objID": "078e1620-1420-4a32-ab7d-0ea7c531316c",
+                  "eventName": "PRESSED",
+                  "handlerType": "action",
+                  "action": "FindPhone",
+                  "userData": 0
+                }
+              ],
+              "identifier": "FindPhoneBTT_1",
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "px",
+              "heightUnit": "px",
+              "children": [],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlagType": "literal",
+              "clickableFlag": true,
+              "clickableFlagType": "literal",
+              "flagScrollbarMode": "",
+              "flagScrollDirection": "",
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "f0734726-7824-43d5-97bb-f4aabe578eb9"
+              },
+              "group": "",
+              "groupIndex": 0,
+              "imageReleased": ""
             }
           ],
           "widgetFlags": "CLICKABLE|PRESS_LOCK|CLICK_FOCUSABLE|GESTURE_BUBBLE|SNAPPABLE|SCROLLABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER",
@@ -1313,6 +1362,56 @@
       "localVariables": [],
       "userProperties": [],
       "name": "Settings",
+      "left": 0,
+      "top": 0,
+      "width": 410,
+      "height": 502,
+      "isUsedAsUserWidget": false,
+      "createAtStart": true,
+      "deleteOnScreenUnload": false
+    },
+    {
+      "objID": "46bdf2a2-0193-43f4-d934-487dc66975ad",
+      "components": [
+        {
+          "objID": "f8d634cf-86ea-4bff-f3bd-7ea9fc8e1ced",
+          "type": "LVGLScreenWidget",
+          "left": 0,
+          "top": 0,
+          "width": 410,
+          "height": 502,
+          "customInputs": [],
+          "customOutputs": [],
+          "style": {
+            "objID": "2df8daae-b878-45c1-85b3-722aa12808d3",
+            "useStyle": "default",
+            "conditionalStyles": [],
+            "childStyles": []
+          },
+          "timeline": [],
+          "eventHandlers": [],
+          "leftUnit": "px",
+          "topUnit": "px",
+          "widthUnit": "px",
+          "heightUnit": "px",
+          "children": [],
+          "widgetFlags": "CLICKABLE|PRESS_LOCK|CLICK_FOCUSABLE|GESTURE_BUBBLE|SNAPPABLE|SCROLLABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER",
+          "hiddenFlagType": "literal",
+          "clickableFlag": true,
+          "clickableFlagType": "literal",
+          "checkedStateType": "literal",
+          "disabledStateType": "literal",
+          "states": "",
+          "localStyles": {
+            "objID": "6fe272ca-7623-4d14-d34c-ef8731449dc7"
+          },
+          "groupIndex": 0
+        }
+      ],
+      "connectionLines": [],
+      "localVariables": [],
+      "userProperties": [],
+      "name": "PlantMonitor",
       "left": 0,
       "top": 0,
       "width": 410,

@@ -3,7 +3,7 @@
     "selectedUserPageObject": "[WizWatch.eez-project]:/userPages/0",
     "selectedGlobalVariableObject": "[WizWatch.eez-project]:/variables/globalVariables/5",
     "selectedFontObject": "[WizWatch.eez-project]:/fonts/0",
-    "selectedBitmapObject": "[WizWatch.eez-project]:/bitmaps/9",
+    "selectedBitmapObject": "[WizWatch.eez-project]:/bitmaps/6",
     "subnavigationSelectedItems": {
       "variables-tab/sub-navigation/selected-item": "Global"
     }
@@ -1014,7 +1014,8 @@
           "1": {},
           "2": {},
           "4": {},
-          "5": {}
+          "5": {},
+          "9": {}
         }
       },
       "transform": {
@@ -1046,7 +1047,7 @@
           "x": -205,
           "y": -351
         },
-        "scale": 1.25
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1089,6 +1090,22 @@
           "y": 0
         },
         "scale": 1
+      }
+    },
+    "[WizWatch.eez-project]:/userPages/2[flow-state]": {
+      "selection": {},
+      "transform": {
+        "translate": {
+          "x": -205,
+          "y": -251
+        },
+        "scale": 1
+      },
+      "timeline": {
+        "isEditorActive": false,
+        "position": 0,
+        "secondToPx": 200,
+        "scrollLeft": 0
       }
     }
   },
